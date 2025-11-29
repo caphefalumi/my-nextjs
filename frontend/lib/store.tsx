@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import type { Employee } from "@/components/features/dashboard/network-graph";
 import type { EmployeeDetail } from "@/components/features/dashboard/employee-detail-card";
 import type { ParsedData } from "@/components/features/dashboard/file-upload";
-import { api, NetworkGraph, AnalyticsResponse, InsightsResponse, PerformanceResponse, FileUploadResponse } from "./api";
+import { api, NetworkGraph, AnalyticsResponse, InsightsResponse, PerformanceResponse, PromotionParserResponse, Relationship } from "./api";
 
 // Default empty data (will be populated from API)
 const DEFAULT_EMPLOYEES: Employee[] = [];
@@ -29,6 +29,7 @@ interface StoreContextType {
   setFilterDepartment: (dept: string) => void;
   setFilterBurnoutRisk: (risk: string) => void;
   importData: (data: ParsedData) => void;
+  importFromBackend: (file: File) => Promise<void>;
   getFilteredEmployees: () => Employee[];
   getEmployeeById: (id: string) => EmployeeDetail | undefined;
   getDepartments: () => string[];
@@ -301,6 +302,109 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Import data from backend (CSV upload)
+  const importFromBackend = useCallback(async (file: File) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response: PromotionParserResponse = await api.uploadCSV(file);
+      
+      // Create a network graph from the response
+      const nodes = response.employees.map(emp => ({
+        id: emp.id,
+        name: emp.name,
+        role: emp.role,
+        avatar: emp.avatar,
+        burnout_risk: emp.burnout_risk,
+        impact_score: emp.impact_score,
+      }));
+      
+      const links = response.relationships.map(rel => ({
+        source: rel.source_id,
+        target: rel.target_id,
+        strength: rel.strength,
+        type: rel.type,
+      }));
+      
+      setNetworkGraph({ nodes, links });
+      
+      // Transform backend employees to frontend Employee type
+      const newEmployees: Employee[] = response.employees.map((emp) => ({
+        id: emp.id,
+        employeeCode: emp.Employee_ID,
+        name: emp.name,
+        email: `${emp.name.toLowerCase().replace(' ', '.')}@company.com`,
+        role: emp.role,
+        department: getDepartmentFromRole(emp.role),
+        team: getDepartmentFromRole(emp.role),
+        managerId: null,
+        joinDate: new Date(Date.now() - emp.Tenure_Months * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        location: 'San Francisco',
+        impactScore: emp.impact_score,
+        burnoutRisk: burnoutRiskToNumber(emp.burnout_risk),
+        collaborators: links
+          .filter(l => l.source === emp.id || l.target === emp.id)
+          .map(l => l.source === emp.id ? l.target : l.source),
+      }));
+      
+      setEmployees(newEmployees);
+      
+      // Create employee details from backend data
+      const newDetails: Record<string, EmployeeDetail> = {};
+      response.employees.forEach((emp) => {
+        newDetails[emp.id] = {
+          id: emp.id,
+          employeeCode: emp.Employee_ID,
+          name: emp.name,
+          email: `${emp.name.toLowerCase().replace(' ', '.')}@company.com`,
+          role: emp.role,
+          department: getDepartmentFromRole(emp.role),
+          team: getDepartmentFromRole(emp.role),
+          managerId: null,
+          managerName: null,
+          joinDate: new Date(Date.now() - emp.Tenure_Months * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          location: 'San Francisco',
+          impactScore: emp.impact_score,
+          burnoutRisk: burnoutRiskToNumber(emp.burnout_risk),
+          stats: {
+            technical: Math.min(100, emp.Avg_Task_Complexity * 20 + 40),
+            leadership: Math.min(100, emp.Help_Request_Replies * 2 + 30),
+            empathy: Math.min(100, emp.Cross_Team_Collaborations * 5 + 40),
+            velocity: Math.min(100, emp.Tasks_Completed_Count * 3 + 30),
+            creativity: Math.min(100, emp.Architectural_Changes * 4 + 40),
+            reliability: Math.min(100, emp.Peer_Review_Score * 20),
+          },
+          projects: emp.jira_tickets.length,
+          collaborators: emp.Cross_Team_Collaborations + emp.Help_Request_Replies,
+          tenure: `${Math.round(emp.Tenure_Months / 12 * 10) / 10} yrs`,
+          recentAchievement: emp.Raw_Achievement_Log.split('|')[0] || undefined,
+          chatLogs: emp.chat_logs,
+          jiraTickets: emp.jira_tickets,
+          commitLogs: emp.commit_logs,
+        };
+      });
+      
+      setEmployeeDetails(newDetails);
+      
+      // Set imported data info
+      setImportedData({
+        headers: Object.keys(response.employees[0] || {}),
+        rows: response.employees as unknown as Record<string, string | number | boolean | null>[],
+        fileName: file.name,
+        fileType: 'csv',
+        totalRows: response.employees.length,
+      });
+      
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to upload CSV';
+      setError(errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const getFilteredEmployees = useCallback(() => {
     return employees.filter((emp) => {
       const matchesSearch = searchQuery === "" || 
@@ -357,6 +461,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setFilterDepartment,
         setFilterBurnoutRisk,
         importData,
+        importFromBackend,
         getFilteredEmployees,
         getEmployeeById,
         getDepartments,

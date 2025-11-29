@@ -193,56 +193,16 @@ export interface EmployeeListResponse {
   total: number;
 }
 
-// File Upload Response Types
-export interface UploadedEmployee {
-  id: string;
-  employeeCode: string;
-  name: string;
-  email: string;
-  role: string;
-  department: string;
-  team: string;
-  managerId: string | null;
-  joinDate: string;
-  location: string;
-  impactScore: number;
-  burnoutRisk: number;
-  collaborators: string[];
+export interface Relationship {
+  source_id: string;
+  target_id: string;
+  strength: number;
+  type: string;
 }
 
-export interface UploadedEmployeeStats {
-  technical: number;
-  leadership: number;
-  empathy: number;
-  velocity: number;
-  creativity: number;
-  reliability: number;
-}
-
-export interface UploadedEmployeeDetail {
-  id: string;
-  employeeCode: string;
-  name: string;
-  email: string;
-  role: string;
-  department: string;
-  team: string;
-  managerId: string | null;
-  managerName: string | null;
-  joinDate: string;
-  location: string;
-  impactScore: number;
-  burnoutRisk: number;
-  stats: UploadedEmployeeStats;
-  projects: number;
-  collaborators: number;
-  tenure: string;
-  recentAchievement?: string;
-}
-
-export interface FileUploadResponse {
-  employees: UploadedEmployee[];
-  employeeDetails: Record<string, UploadedEmployeeDetail>;
+export interface PromotionParserResponse {
+  employees: BackendEmployee[];
+  relationships: Relationship[];
 }
 
 // API Error type
@@ -321,33 +281,26 @@ export const api = {
   // Performance
   getPerformance: () => fetchApi<PerformanceResponse>('/performance'),
 
-  // File Upload - sends CSV file to backend for parsing
-  uploadFile: async (file: File): Promise<FileUploadResponse> => {
+  // Upload CSV to backend for parsing
+  uploadCSV: async (file: File): Promise<PromotionParserResponse> => {
+    const url = `${API_BASE_URL}/promotion-parser`;
     const formData = new FormData();
     formData.append('file', file);
 
-    const url = `${API_BASE_URL}/promotion-parser`;
-    const token = getAuthToken();
-    
     try {
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        // Don't set Content-Type header - browser will set it with boundary
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new ApiError(response.status, errorText || response.statusText);
+        throw new ApiError(response.status, `API Error: ${response.statusText}`);
       }
 
       return response.json();
     } catch (error) {
       if (error instanceof ApiError) throw error;
-      throw new ApiError(500, `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new ApiError(500, `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   },
 };
