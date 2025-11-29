@@ -53,6 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Failed to fetch user:", error);
+      // Clear invalid token on network error
+      localStorage.removeItem(TOKEN_KEY);
+      setTokenState(null);
+      setUser(null);
       return false;
     }
   }, []);

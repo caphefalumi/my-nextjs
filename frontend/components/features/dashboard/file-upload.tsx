@@ -317,7 +317,7 @@ export function FileUpload({
           // Create ParsedData from response for preview
           const data: ParsedData = {
             headers: ["name", "role", "department", "impactScore", "burnoutRisk"],
-            rows: response.employees.map(emp => ({
+            rows: response.employees.map((emp: { id: string; name: string; role: string; department: string; email: string; impactScore: number; burnoutRisk: string; location: string }) => ({
               id: emp.id,
               name: emp.name,
               role: emp.role,

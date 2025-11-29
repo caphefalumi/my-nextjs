@@ -25,7 +25,12 @@ export class AuthService {
   async validateGoogleUser(googleUser: GoogleUser): Promise<UserDocument> {
     const { googleId, email, name, picture, accessToken, refreshToken } = googleUser;
 
-    let user = await this.userModel.findOne({ googleId });
+    // First try to find by email (preferred), then by googleId
+    let user = await this.userModel.findOne({ email });
+    
+    if (!user) {
+      user = await this.userModel.findOne({ googleId });
+    }
 
     if (!user) {
       user = await this.userModel.create({
@@ -38,6 +43,8 @@ export class AuthService {
         role: 'admin',
       });
     } else {
+      // Update existing user with latest Google info
+      user.googleId = googleId;
       user.accessToken = accessToken;
       user.refreshToken = refreshToken;
       user.name = name;

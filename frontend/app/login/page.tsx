@@ -1,13 +1,28 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 
-export default function LoginPage() {
+function LoginContent() {
   const { isAuthenticated, isLoading, login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      const errorMessages: Record<string, string> = {
+        no_code: "Authentication was cancelled or failed",
+        token_failed: "Failed to authenticate with Google",
+        userinfo_failed: "Failed to get user information",
+        oauth_failed: "Google sign-in failed. Please try again.",
+      };
+      setError(errorMessages[errorParam] || "An error occurred during sign-in");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -78,6 +93,13 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                <p className="text-sm text-red-400 text-center">{error}</p>
+              </div>
+            )}
+
             {/* Google Sign In Button */}
             <motion.button
               onClick={login}
@@ -138,5 +160,19 @@ export default function LoginPage() {
         </p>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

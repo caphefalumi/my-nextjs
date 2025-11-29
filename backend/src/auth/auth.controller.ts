@@ -27,25 +27,71 @@ export class AuthController {
     res.redirect(googleAuthUrl);
   }
 
-  // Google OAuth callback - ignore Google's response, just login as mock user
+  // Google OAuth callback - exchange code for tokens and get user info
   @Get('google/callback')
-  async googleCallback(@Res() res: Response) {
-    // Ignore the authorization code from Google completely
-    // Just create/login the mock user
-    const mockGoogleUser = {
-      googleId: 'mock-google-id-123',
-      email: 'dangduytoan13l@gmail.com',
-      name: 'Dang Duy Toan',
-      picture: 'https://i.pravatar.cc/150?u=dangduytoan13l',
-      accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token',
-    };
-
-    const user = await this.authService.validateGoogleUser(mockGoogleUser);
-    const token = this.authService.generateToken(user);
-    
+  async googleCallback(@Req() req: Request, @Res() res: Response) {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+    
+    try {
+      const code = req.query.code as string;
+      
+      if (!code) {
+        return res.redirect(`${frontendUrl}/login?error=no_code`);
+      }
+
+      const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+      const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
+      const callbackUrl = this.configService.get<string>('GOOGLE_CALLBACK_URL') || 'http://localhost:3002/api/auth/google/callback';
+
+      // Exchange authorization code for tokens
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: callbackUrl,
+          grant_type: 'authorization_code',
+        }),
+      });
+
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenData.access_token) {
+        console.error('Token exchange failed:', tokenData);
+        return res.redirect(`${frontendUrl}/login?error=token_failed`);
+      }
+
+      // Get user info from Google
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+
+      const googleUserInfo = await userInfoResponse.json();
+
+      if (!googleUserInfo.email) {
+        console.error('Failed to get user info:', googleUserInfo);
+        return res.redirect(`${frontendUrl}/login?error=userinfo_failed`);
+      }
+
+      const googleUser = {
+        googleId: googleUserInfo.id,
+        email: googleUserInfo.email,
+        name: googleUserInfo.name || googleUserInfo.email.split('@')[0],
+        picture: googleUserInfo.picture || `https://i.pravatar.cc/150?u=${googleUserInfo.email}`,
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token || '',
+      };
+
+      const user = await this.authService.validateGoogleUser(googleUser);
+      const token = this.authService.generateToken(user);
+      
+      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+    } catch (error) {
+      console.error('Google OAuth error:', error);
+      res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+    }
   }
 
   // Get current user profile

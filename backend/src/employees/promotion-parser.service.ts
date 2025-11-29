@@ -308,7 +308,7 @@ export class PromotionParserService {
       const level = parseInt(employee.Level.replace('L', ''));
       
       // High-level employees mentor others
-      if (level >= 5 && collaborations > 10) {
+      if (level >= 5 && helpReplies >= 10) {
         // Find lower-level employee to mentor
         const mentees = employees.filter(e => {
           const eLevel = parseInt(e.Level.replace('L', ''));
@@ -327,15 +327,15 @@ export class PromotionParserService {
       }
       
       // Collaborations based on cross-team work
-      if (collaborations > 5) {
-        const numCollaborations = Math.min(3, Math.floor(collaborations / 4));
+      if (collaborations >= 1) {
+        const numCollaborations = Math.min(3, Math.max(1, Math.floor(collaborations / 2)));
         for (let i = 0; i < numCollaborations; i++) {
           const targetIndex = (index + i + 1) % employees.length;
           if (targetIndex !== index) {
             relationships.push({
               source_id: employee.id,
               target_id: employees[targetIndex].id,
-              strength: Math.min(8, Math.floor(collaborations / 2) + 3),
+              strength: Math.min(8, collaborations + 3),
               type: 'collaboration',
             });
           }

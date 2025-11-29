@@ -1,82 +1,35 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { CyberpunkLayout } from "@/components/layout/cyberpunk-layout";
-import { NetworkGraph } from "@/components/features/dashboard/network-graph";
-import { EmployeeDetailCard } from "@/components/features/dashboard/employee-detail-card";
-import { FileUpload, type ParsedData } from "@/components/features/dashboard/file-upload";
-import { useStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
-import type { Employee } from "@/components/features/dashboard/network-graph";
-import type { EmployeeDetail } from "@/components/features/dashboard/employee-detail-card";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useAuth } from "@/lib/auth-context";
+import { Brain, ArrowRight, Users, BarChart3, Zap, Shield } from "lucide-react";
+
+const features = [
+  {
+    icon: Users,
+    title: "Team Analytics",
+    description: "Visualize team dynamics and collaboration patterns",
+  },
+  {
+    icon: BarChart3,
+    title: "Performance Insights",
+    description: "Track and predict employee performance trends",
+  },
+  {
+    icon: Zap,
+    title: "Burnout Detection",
+    description: "Early warning system for employee wellbeing",
+  },
+  {
+    icon: Shield,
+    title: "Data Security",
+    description: "Enterprise-grade security for sensitive HR data",
+  },
+];
 
 export default function HomePage() {
-  const { 
-    employees, 
-    getEmployeeById, 
-    importData, 
-    importFromBackend,
-    getStats,
-    importedData,
-    loading,
-    error,
-    fetchEmployeeDetail,
-  } = useStore();
-  
-  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeDetail | null>(null);
-  const [isCardOpen, setIsCardOpen] = useState(false);
-  const [isUploadVisible, setIsUploadVisible] = useState(true);
-
-  const stats = getStats();
-
-  const handleNodeClick = useCallback(async (employee: Employee) => {
-    // First try to get from cache
-    let detail: EmployeeDetail | null | undefined = getEmployeeById(employee.id);
-    
-    // If not in cache, fetch from backend
-    if (!detail) {
-      detail = await fetchEmployeeDetail(employee.id);
-    }
-    
-    if (detail) {
-      setSelectedEmployee(detail);
-      setIsCardOpen(true);
-    }
-  }, [getEmployeeById, fetchEmployeeDetail]);
-
-  const handleCardClose = useCallback(() => {
-    setIsCardOpen(false);
-  }, []);
-
-  const handleDataParsed = useCallback((data: ParsedData) => {
-    importData(data);
-    setIsUploadVisible(false);
-  }, [importData]);
-
-  const handleFileSelected = useCallback(async (file: File) => {
-    try {
-      await importFromBackend(file);
-      setIsUploadVisible(false);
-    } catch (err) {
-      console.error("Failed to upload CSV to backend:", err);
-    }
-  }, [importFromBackend]);
-
-  const handleUploadError = useCallback((error: string) => {
-    console.error("Upload error:", error);
-  }, []);
-
-  const handleToggleUpload = useCallback(() => {
-    setIsUploadVisible((prev) => !prev);
-  }, []);
-
-  const overviewStats = [
-    { label: "Total Personnel", value: String(stats.total), trend: "+12%", isNegative: false },
-    { label: "Avg Impact Score", value: String(stats.avgImpact), trend: "+5.2%", isNegative: false },
-    { label: "High Performers", value: String(stats.highPerformers), trend: "+8%", isNegative: false },
-    { label: "Burnout Alerts", value: String(stats.burnoutAlerts), trend: stats.burnoutAlerts > 0 ? "Alert" : "OK", isNegative: stats.burnoutAlerts > 0 },
-  ];
+  const { login } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] relative overflow-hidden">
@@ -171,16 +124,16 @@ export default function HomePage() {
               Continue with Google
             </motion.button>
             <Link
-              href="/login"
+              href="/dashboard"
               className="flex items-center gap-2 px-8 py-4 rounded-xl border border-white/20 text-white font-semibold text-lg hover:bg-white/5 transition-colors"
             >
-              Learn More
+              View Demo
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </motion.div>
 
-        {/* Preview Image Placeholder */}
+        {/* Preview */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -201,7 +154,6 @@ export default function HomePage() {
                 <p className="text-gray-400">Interactive Dashboard Preview</p>
               </div>
             </div>
-            {/* Floating Elements */}
             <motion.div
               className="absolute top-10 left-10 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-500/30"
               animate={{ y: [0, -10, 0] }}
@@ -217,31 +169,19 @@ export default function HomePage() {
               <span className="text-teal-400 text-sm">12 Employees Analyzed</span>
             </motion.div>
           </div>
-        )}
+        </motion.div>
+      </section>
 
-        {/* Data Status */}
-        {importedData && (
-          <div className="p-4 rounded-xl bg-teal-500/10 border border-teal-500/30">
-            <p className="text-teal-300 text-sm">
-              <span className="font-semibold">Data loaded:</span> {importedData.fileName} ({importedData.totalRows} employees imported)
-            </p>
-          </div>
-        )}
-
-        {/* File Upload Section */}
-        {isUploadVisible && (
-          <FileUpload 
-            onDataParsed={handleDataParsed} 
-            onFileSelected={handleFileSelected}
-            onError={handleUploadError} 
-          />
-        )}
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-4 gap-4">
-          {overviewStats.map((stat) => (
-            <div 
-              key={stat.label} 
+      {/* Features */}
+      <section className="relative z-10 max-w-7xl mx-auto px-8 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
               className="p-6 rounded-2xl bg-gray-900/50 border border-white/10 hover:border-purple-500/30 transition-all"
             >
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 flex items-center justify-center mb-4">
@@ -254,7 +194,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="relative z-10 max-w-7xl mx-auto px-8 py-20">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -277,21 +217,15 @@ export default function HomePage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Get Started for Free
+            Get Started Free
           </motion.button>
         </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 py-8">
-        <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-purple-400" />
-            <span className="text-gray-400 text-sm">Luminus.ai</span>
-          </div>
-          <p className="text-gray-500 text-sm">
-            2024 Luminus. All rights reserved.
-          </p>
+      <footer className="relative z-10 border-t border-white/10 py-8 mt-20">
+        <div className="max-w-7xl mx-auto px-8 text-center text-gray-500 text-sm">
+          &copy; 2024 Luminus.ai. All rights reserved.
         </div>
       </footer>
     </div>

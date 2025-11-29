@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import type { Employee } from "@/components/features/dashboard/network-graph";
 import type { EmployeeDetail } from "@/components/features/dashboard/employee-detail-card";
 import type { ParsedData } from "@/components/features/dashboard/file-upload";
-import { api, NetworkGraph, AnalyticsResponse, InsightsResponse, PerformanceResponse, PromotionParserResponse, Relationship } from "./api";
+import { api, NetworkGraph, AnalyticsResponse, InsightsResponse, PerformanceResponse, PromotionParserResponse, FileUploadResponse } from "./api";
 
 // Default empty data (will be populated from API)
 const DEFAULT_EMPLOYEES: Employee[] = [];
@@ -197,45 +197,68 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.uploadFile(file);
       
-      // Transform uploaded employees to store format
-      const newEmployees: Employee[] = response.employees.map((emp) => ({
-        id: emp.id,
-        employeeCode: emp.employeeCode,
+      // Generate mock collaborators - each employee connects to 2-4 random others
+      const employeeIds = response.employees.map((_, idx) => (idx + 1).toString());
+      const generateMockCollaborators = (empId: string): string[] => {
+        const others = employeeIds.filter(id => id !== empId);
+        const numConnections = Math.min(others.length, 2 + Math.floor(Math.random() * 3));
+        const shuffled = others.sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, numConnections);
+      };
+
+      // Transform uploaded employees to store format (BackendEmployee -> Employee)
+      const newEmployees: Employee[] = response.employees.map((emp, idx) => ({
+        id: emp.id || (idx + 1).toString(),
+        employeeCode: emp.Employee_ID,
         name: emp.name,
-        email: emp.email,
+        email: `${emp.name.toLowerCase().replace(' ', '.')}@company.com`,
         role: emp.role,
-        department: emp.department,
-        team: emp.team,
-        managerId: emp.managerId,
-        joinDate: emp.joinDate,
-        location: emp.location,
-        impactScore: emp.impactScore,
-        burnoutRisk: emp.burnoutRisk,
-        collaborators: emp.collaborators,
+        department: getDepartmentFromRole(emp.role),
+        team: getDepartmentFromRole(emp.role),
+        managerId: null,
+        joinDate: new Date().toISOString().split('T')[0],
+        location: 'Remote',
+        impactScore: emp.impact_score,
+        burnoutRisk: burnoutRiskToNumber(emp.burnout_risk),
+        collaborators: generateMockCollaborators(emp.id || (idx + 1).toString()),
+        avatar: emp.avatar,
       }));
       
-      // Transform uploaded employee details to store format
+      // Transform employee details from API format to component format
       const newDetails: Record<string, EmployeeDetail> = {};
-      Object.entries(response.employeeDetails).forEach(([id, detail]) => {
+      Object.entries(response.employeeDetails).forEach(([id, apiDetail]) => {
+        const emp = apiDetail.employee;
         newDetails[id] = {
-          id: detail.id,
-          employeeCode: detail.employeeCode,
-          name: detail.name,
-          email: detail.email,
-          role: detail.role,
-          department: detail.department,
-          team: detail.team,
-          managerId: detail.managerId,
-          managerName: detail.managerName,
-          joinDate: detail.joinDate,
-          location: detail.location,
-          impactScore: detail.impactScore,
-          burnoutRisk: detail.burnoutRisk,
-          stats: detail.stats,
-          projects: detail.projects,
-          collaborators: detail.collaborators,
-          tenure: detail.tenure,
-          recentAchievement: detail.recentAchievement,
+          id: emp.id,
+          employeeCode: emp.Employee_ID,
+          name: emp.name,
+          email: `${emp.name.toLowerCase().replace(' ', '.')}@company.com`,
+          role: emp.role,
+          department: getDepartmentFromRole(emp.role),
+          team: getDepartmentFromRole(emp.role),
+          managerId: null,
+          managerName: null,
+          joinDate: new Date().toISOString().split('T')[0],
+          location: 'Remote',
+          impactScore: emp.impact_score,
+          burnoutRisk: apiDetail.calculated_burnout_score,
+          stats: {
+            technical: emp.Architectural_Changes * 10,
+            leadership: emp.Critical_Incident_Ownership * 15,
+            empathy: emp.Help_Request_Replies * 5,
+            velocity: emp.Tasks_Completed_Count / 10,
+            creativity: emp.Unassigned_Tasks_Picked * 10,
+            reliability: emp.Peer_Review_Score * 10,
+          },
+          projects: emp.jira_tickets?.length || 0,
+          collaborators: emp.Help_Request_Replies,
+          tenure: `${emp.Tenure_Months} months`,
+          recentAchievement: emp.Raw_Achievement_Log?.split('|')[0],
+          avatar: emp.avatar,
+          aiSummary: apiDetail.ai_summary,
+          chatLogs: emp.chat_logs,
+          jiraTickets: emp.jira_tickets,
+          commitLogs: emp.commit_logs,
         };
       });
       

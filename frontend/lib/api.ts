@@ -205,6 +205,12 @@ export interface PromotionParserResponse {
   relationships: Relationship[];
 }
 
+export interface FileUploadResponse {
+  employees: BackendEmployee[];
+  employeeDetails: Record<string, EmployeeDetail>;
+  relationships: Relationship[];
+}
+
 // API Error type
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -280,6 +286,46 @@ export const api = {
 
   // Performance
   getPerformance: () => fetchApi<PerformanceResponse>('/performance'),
+
+  // Upload file to backend for parsing
+  uploadFile: async (file: File): Promise<FileUploadResponse> => {
+    const url = `${API_BASE_URL}/promotion-parser`;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new ApiError(response.status, `API Error: ${response.statusText}`);
+      }
+
+      const data: PromotionParserResponse = await response.json();
+      
+      // Transform to FileUploadResponse format
+      const employeeDetails: Record<string, EmployeeDetail> = {};
+      data.employees.forEach((emp) => {
+        employeeDetails[emp.id] = {
+          employee: emp,
+          ai_summary: `AI-generated summary for ${emp.name}`,
+          calculated_burnout_score: emp.burnout_risk === 'high' ? 80 : emp.burnout_risk === 'medium' || emp.burnout_risk === 'med' ? 50 : 20,
+          calculated_impact_score: emp.impact_score,
+        };
+      });
+
+      return {
+        employees: data.employees,
+        employeeDetails,
+        relationships: data.relationships,
+      };
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      throw new ApiError(500, `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
 
   // Upload CSV to backend for parsing
   uploadCSV: async (file: File): Promise<PromotionParserResponse> => {

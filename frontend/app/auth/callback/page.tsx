@@ -14,7 +14,7 @@ function CallbackHandler() {
     
     if (token) {
       setToken(token);
-      router.push("/");
+      router.push("/dashboard");
     } else {
       // No token, redirect to login
       router.push("/login");
