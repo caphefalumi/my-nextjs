@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import csvParser from 'csv-parser';
 import { Readable } from 'stream';
 import type {
-  PromotionEmployee,
   Relationship,
   PromotionParserResponse,
+  PromotionEmployee,
   ChatLog,
   JiraTicket,
   CommitLog,
@@ -71,7 +71,7 @@ export class PromotionParserService {
       const commitLogs = this.generateCommitLogs(row);
       
       // Create Employee object matching mock-data.json structure
-      const employee: PromotionEmployee = {
+      const employee = {
         id,
         name: row.name,
         role: row.Current_Role,
@@ -299,7 +299,7 @@ export class PromotionParserService {
     return commits;
   }
 
-  private generateRelationships(employees: PromotionEmployee[]): Relationship[] {
+  private generateRelationships(employees: any): Relationship[] {
     const relationships: Relationship[] = [];
     
     employees.forEach((employee, index) => {
