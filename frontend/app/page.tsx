@@ -117,43 +117,7 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-20 relative"
-        >
-          <div
-            className="aspect-video rounded-2xl border border-white/10 overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(31, 41, 55, 0.9))",
-            }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/30 to-teal-500/30 flex items-center justify-center mx-auto mb-4">
-                  <Brain className="w-10 h-10 text-purple-400" />
-                </div>
-                <p className="text-gray-400">Interactive Dashboard Preview</p>
-              </div>
-            </div>
-            <motion.div
-              className="absolute top-10 left-10 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-500/30"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              <span className="text-purple-400 text-sm">AI Insights Ready</span>
-            </motion.div>
-            <motion.div
-              className="absolute bottom-10 right-10 px-4 py-2 rounded-lg bg-teal-500/20 border border-teal-500/30"
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-            >
-              <span className="text-teal-400 text-sm">12 Employees Analyzed</span>
-            </motion.div>
-          </div>
-        </motion.div>
+
       </section>
 
       {/* Features */}
