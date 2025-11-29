@@ -1,0 +1,604 @@
+{
+  "employees": [
+    {
+      "id": "1",
+      "name": "Sarah2 Chen",
+      "role": "Senior Backend Engineer",
+      "avatar": "https://i.pravatar.cc/150?img=47",
+      "skills": ["Node.js", "TypeScript", "PostgreSQL", "System Design", "Microservices"],
+      "burnout_risk": "high",
+      "impact_score": 92,
+      "Employee_ID": "EMP-001",
+      "Current_Role": "Senior Backend Engineer",
+      "Level": "L5",
+      "Tenure_Months": 42,
+      "Unassigned_Tasks_Picked": 18,
+      "Help_Request_Replies": 47,
+      "Cross_Team_Collaborations": 12,
+      "Critical_Incident_Ownership": 8,
+      "Peer_Review_Score": 4.8,
+      "Architectural_Changes": 15,
+      "Avg_Task_Complexity": 4.2,
+      "Tasks_Completed_Count": 23,
+      "Late_Night_Commits": 14,
+      "Weekend_Activity_Log": 8,
+      "Vacation_Days_Unused": 12,
+      "Sentiment_Trend": -0.15,
+      "Raw_Achievement_Log": "Refactored entire authentication service reducing latency by 40%|Designed and implemented microservices caching layer saving $2.5K/month|Fixed critical database migration issue preventing production outage|Mentored 3 junior engineers on system design patterns|Owned 8 critical incidents with 100% resolution rate|Led cross-team initiative for API standardization",
+      "chat_logs": [
+        {
+          "timestamp": "2024-01-15T22:30:00Z",
+          "message": "I'll handle the deployment tonight, don't worry about it",
+          "sentiment": "neutral"
+        },
+        {
+          "timestamp": "2024-01-16T01:15:00Z",
+          "message": "Fixed the database migration issue",
+          "sentiment": "positive"
+        },
+        {
+          "timestamp": "2024-01-17T23:45:00Z",
+          "message": "Sure, I can take on that refactoring task",
+          "sentiment": "neutral"
+        }
+      ],
+      "jira_tickets": [
+        {
+          "id": "PROJ-123",
+          "title": "Refactor authentication service",
+          "complexity": "high",
+          "status": "done",
+          "created_at": "2024-01-10T08:00:00Z",
+          "completed_at": "2024-01-15T20:00:00Z"
+        },
+        {
+          "id": "PROJ-145",
+          "title": "Optimize database queries",
+          "complexity": "high",
+          "status": "done",
+          "created_at": "2024-01-12T09:00:00Z",
+          "completed_at": "2024-01-18T22:30:00Z"
+        },
+        {
+          "id": "PROJ-167",
+          "title": "Implement caching layer",
+          "complexity": "medium",
+          "status": "in_progress",
+          "created_at": "2024-01-20T10:00:00Z"
+        }
+      ],
+      "commit_logs": [
+        {
+          "hash": "a1b2c3d4",
+          "message": "Refactor auth service with better error handling",
+          "timestamp": "2024-01-15T22:30:00Z",
+          "files_changed": 12,
+          "lines_added": 450,
+          "lines_deleted": 120
+        },
+        {
+          "hash": "e5f6g7h8",
+          "message": "Optimize database queries for user lookup",
+          "timestamp": "2024-01-16T01:15:00Z",
+          "files_changed": 5,
+          "lines_added": 200,
+          "lines_deleted": 80
+        },
+        {
+          "hash": "i9j0k1l2",
+          "message": "Add caching layer for API responses",
+          "timestamp": "2024-01-18T22:30:00Z",
+          "files_changed": 8,
+          "lines_added": 320,
+          "lines_deleted": 45
+        },
+        {
+          "hash": "m3n4o5p6",
+          "message": "Fix memory leak in background jobs",
+          "timestamp": "2024-01-19T23:45:00Z",
+          "files_changed": 3,
+          "lines_added": 150,
+          "lines_deleted": 90
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Kevin Martinez",
+      "role": "Frontend Developer",
+      "avatar": "https://i.pravatar.cc/150?img=12",
+      "skills": ["React", "TypeScript", "CSS", "UI/UX"],
+      "burnout_risk": "low",
+      "impact_score": 35,
+      "Employee_ID": "EMP-002",
+      "Current_Role": "Frontend Developer",
+      "Level": "L3",
+      "Tenure_Months": 18,
+      "Unassigned_Tasks_Picked": 3,
+      "Help_Request_Replies": 8,
+      "Cross_Team_Collaborations": 2,
+      "Critical_Incident_Ownership": 0,
+      "Peer_Review_Score": 3.5,
+      "Architectural_Changes": 1,
+      "Avg_Task_Complexity": 1.8,
+      "Tasks_Completed_Count": 15,
+      "Late_Night_Commits": 0,
+      "Weekend_Activity_Log": 1,
+      "Vacation_Days_Unused": 2,
+      "Sentiment_Trend": 0.25,
+      "Raw_Achievement_Log": "Updated button component styles|Added hover effects to card components|Fixed color picker CSS styling|Improved UI consistency across 3 pages",
+      "chat_logs": [
+        {
+          "timestamp": "2024-01-15T10:00:00Z",
+          "message": "Hey team! Just finished the button component, looks great!",
+          "sentiment": "positive"
+        },
+        {
+          "timestamp": "2024-01-15T14:30:00Z",
+          "message": "Anyone want to pair on the modal? I'm available",
+          "sentiment": "positive"
+        },
+        {
+          "timestamp": "2024-01-16T09:15:00Z",
+          "message": "Morning! Ready to tackle the day!",
+          "sentiment": "positive"
+        },
+        {
+          "timestamp": "2024-01-16T16:00:00Z",
+          "message": "Just pushed the color picker, let me know what you think!",
+          "sentiment": "positive"
+        }
+      ],
+      "jira_tickets": [
+        {
+          "id": "PROJ-89",
+          "title": "Update button styles",
+          "complexity": "low",
+          "status": "done",
+          "created_at": "2024-01-14T08:00:00Z",
+          "completed_at": "2024-01-15T11:00:00Z"
+        },
+        {
+          "id": "PROJ-91",
+          "title": "Add hover effect to cards",
+          "complexity": "low",
+          "status": "done",
+          "created_at": "2024-01-15T09:00:00Z",
+          "completed_at": "2024-01-15T15:00:00Z"
+        },
+        {
+          "id": "PROJ-95",
+          "title": "Fix color picker styling",
+          "complexity": "low",
+          "status": "done",
+          "created_at": "2024-01-16T10:00:00Z",
+          "completed_at": "2024-01-16T16:00:00Z"
+        }
+      ],
+      "commit_logs": [
+        {
+          "hash": "q7r8s9t0",
+          "message": "Update button component styles",
+          "timestamp": "2024-01-15T10:30:00Z",
+          "files_changed": 2,
+          "lines_added": 25,
+          "lines_deleted": 10
+        },
+        {
+          "hash": "u1v2w3x4",
+          "message": "Add hover effect to card component",
+          "timestamp": "2024-01-15T14:45:00Z",
+          "files_changed": 1,
+          "lines_added": 15,
+          "lines_deleted": 5
+        },
+        {
+          "hash": "y5z6a7b8",
+          "message": "Fix color picker CSS",
+          "timestamp": "2024-01-16T16:15:00Z",
+          "files_changed": 1,
+          "lines_added": 20,
+          "lines_deleted": 8
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Alex Thompson",
+      "role": "Full Stack Engineer",
+      "avatar": "https://i.pravatar.cc/150?img=33",
+      "skills": ["React", "Node.js", "TypeScript", "AWS", "Docker"],
+      "burnout_risk": "medium",
+      "impact_score": 78,
+      "Employee_ID": "EMP-003",
+      "Current_Role": "Full Stack Engineer",
+      "Level": "L4",
+      "Tenure_Months": 30,
+      "Unassigned_Tasks_Picked": 9,
+      "Help_Request_Replies": 22,
+      "Cross_Team_Collaborations": 6,
+      "Critical_Incident_Ownership": 3,
+      "Peer_Review_Score": 4.2,
+      "Architectural_Changes": 5,
+      "Avg_Task_Complexity": 3.1,
+      "Tasks_Completed_Count": 19,
+      "Late_Night_Commits": 3,
+      "Weekend_Activity_Log": 4,
+      "Vacation_Days_Unused": 5,
+      "Sentiment_Trend": 0.05,
+      "Raw_Achievement_Log": "Built user dashboard API handling 10K+ requests/day|Deployed real-time notification system|Implemented WebSocket connection pooling|Collaborated with DevOps on CI/CD pipeline improvements",
+      "chat_logs": [
+        {
+          "timestamp": "2024-01-15T11:00:00Z",
+          "message": "The API endpoint is ready for testing",
+          "sentiment": "neutral"
+        },
+        {
+          "timestamp": "2024-01-16T15:30:00Z",
+          "message": "Deployed the new feature to staging",
+          "sentiment": "positive"
+        }
+      ],
+      "jira_tickets": [
+        {
+          "id": "PROJ-134",
+          "title": "Build user dashboard API",
+          "complexity": "medium",
+          "status": "done",
+          "created_at": "2024-01-13T09:00:00Z",
+          "completed_at": "2024-01-16T14:00:00Z"
+        },
+        {
+          "id": "PROJ-156",
+          "title": "Implement real-time notifications",
+          "complexity": "medium",
+          "status": "in_progress",
+          "created_at": "2024-01-18T10:00:00Z"
+        }
+      ],
+      "commit_logs": [
+        {
+          "hash": "c9d0e1f2",
+          "message": "Add user dashboard API endpoint",
+          "timestamp": "2024-01-15T11:00:00Z",
+          "files_changed": 6,
+          "lines_added": 280,
+          "lines_deleted": 50
+        },
+        {
+          "hash": "g3h4i5j6",
+          "message": "Deploy staging environment",
+          "timestamp": "2024-01-16T15:30:00Z",
+          "files_changed": 4,
+          "lines_added": 120,
+          "lines_deleted": 30
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Emma Wilson",
+      "role": "DevOps Engineer",
+      "avatar": "https://i.pravatar.cc/150?img=20",
+      "skills": ["Kubernetes", "Docker", "CI/CD", "Terraform", "Monitoring"],
+      "burnout_risk": "medium",
+      "impact_score": 85,
+      "Employee_ID": "EMP-004",
+      "Current_Role": "DevOps Engineer",
+      "Level": "L5",
+      "Tenure_Months": 36,
+      "Unassigned_Tasks_Picked": 11,
+      "Help_Request_Replies": 31,
+      "Cross_Team_Collaborations": 9,
+      "Critical_Incident_Ownership": 6,
+      "Peer_Review_Score": 4.6,
+      "Architectural_Changes": 8,
+      "Avg_Task_Complexity": 3.8,
+      "Tasks_Completed_Count": 21,
+      "Late_Night_Commits": 5,
+      "Weekend_Activity_Log": 6,
+      "Vacation_Days_Unused": 7,
+      "Sentiment_Trend": 0.02,
+      "Raw_Achievement_Log": "Set up Kubernetes cluster reducing deployment time by 60%|Configured Prometheus monitoring preventing 3 potential outages|Automated infrastructure provisioning saving 15 hours/week|Led incident response for 6 critical production issues|Designed disaster recovery strategy",
+      "chat_logs": [
+        {
+          "timestamp": "2024-01-15T09:00:00Z",
+          "message": "Infrastructure changes deployed successfully",
+          "sentiment": "positive"
+        },
+        {
+          "timestamp": "2024-01-17T10:00:00Z",
+          "message": "Monitoring alerts are now configured",
+          "sentiment": "neutral"
+        }
+      ],
+      "jira_tickets": [
+        {
+          "id": "PROJ-178",
+          "title": "Set up Kubernetes cluster",
+          "complexity": "high",
+          "status": "done",
+          "created_at": "2024-01-10T08:00:00Z",
+          "completed_at": "2024-01-15T08:30:00Z"
+        },
+        {
+          "id": "PROJ-189",
+          "title": "Configure monitoring dashboards",
+          "complexity": "medium",
+          "status": "done",
+          "created_at": "2024-01-16T09:00:00Z",
+          "completed_at": "2024-01-17T10:00:00Z"
+        }
+      ],
+      "commit_logs": [
+        {
+          "hash": "k7l8m9n0",
+          "message": "Add Kubernetes deployment configs",
+          "timestamp": "2024-01-14T18:00:00Z",
+          "files_changed": 15,
+          "lines_added": 500,
+          "lines_deleted": 0
+        },
+        {
+          "hash": "o1p2q3r4",
+          "message": "Configure Prometheus monitoring",
+          "timestamp": "2024-01-17T10:00:00Z",
+          "files_changed": 8,
+          "lines_added": 300,
+          "lines_deleted": 20
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "name": "David Kim",
+      "role": "Tech Lead",
+      "avatar": "https://i.pravatar.cc/150?img=51",
+      "skills": ["Architecture", "System Design", "Python", "Go", "Leadership"],
+      "burnout_risk": "low",
+      "impact_score": 88,
+      "Employee_ID": "EMP-005",
+      "Current_Role": "Tech Lead",
+      "Level": "L6",
+      "Tenure_Months": 54,
+      "Unassigned_Tasks_Picked": 6,
+      "Help_Request_Replies": 52,
+      "Cross_Team_Collaborations": 15,
+      "Critical_Incident_Ownership": 4,
+      "Peer_Review_Score": 4.9,
+      "Architectural_Changes": 22,
+      "Avg_Task_Complexity": 4.5,
+      "Tasks_Completed_Count": 18,
+      "Late_Night_Commits": 2,
+      "Weekend_Activity_Log": 3,
+      "Vacation_Days_Unused": 3,
+      "Sentiment_Trend": 0.1,
+      "Raw_Achievement_Log": "Designed microservices architecture supporting 10x scale|Authored technical documentation used by entire engineering org|Mentored 8 engineers across 3 teams|Led architecture review process reducing tech debt by 30%|Established code review guidelines improving code quality|Recognized Sarah Chen's exceptional contributions",
+      "chat_logs": [
+        {
+          "timestamp": "2024-01-15T08:00:00Z",
+          "message": "Let's discuss the architecture changes in the standup",
+          "sentiment": "neutral"
+        },
+        {
+          "timestamp": "2024-01-16T13:00:00Z",
+          "message": "Great work on the refactoring, Sarah!",
+          "sentiment": "positive"
+        }
+      ],
+      "jira_tickets": [
+        {
+          "id": "PROJ-200",
+          "title": "Design microservices architecture",
+          "complexity": "high",
+          "status": "done",
+          "created_at": "2024-01-08T08:00:00Z",
+          "completed_at": "2024-01-12T17:00:00Z"
+        },
+        {
+          "id": "PROJ-210",
+          "title": "Code review and mentoring",
+          "complexity": "medium",
+          "status": "in_progress",
+          "created_at": "2024-01-15T08:00:00Z"
+        }
+      ],
+      "commit_logs": [
+        {
+          "hash": "s5t6u7v8",
+          "message": "Add architecture documentation",
+          "timestamp": "2024-01-12T17:00:00Z",
+          "files_changed": 10,
+          "lines_added": 800,
+          "lines_deleted": 100
+        },
+        {
+          "hash": "w9x0y1z2",
+          "message": "Update code review guidelines",
+          "timestamp": "2024-01-15T14:00:00Z",
+          "files_changed": 3,
+          "lines_added": 150,
+          "lines_deleted": 40
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "name": "Maria Garcia",
+      "role": "QA Engineer",
+      "avatar": "https://i.pravatar.cc/150?img=28",
+      "skills": ["Testing", "Automation", "Selenium", "Jest", "Quality Assurance"],
+      "burnout_risk": "low",
+      "impact_score": 72,
+      "Employee_ID": "EMP-006",
+      "Current_Role": "QA Engineer",
+      "Level": "L4",
+      "Tenure_Months": 24,
+      "Unassigned_Tasks_Picked": 7,
+      "Help_Request_Replies": 18,
+      "Cross_Team_Collaborations": 5,
+      "Critical_Incident_Ownership": 2,
+      "Peer_Review_Score": 4.3,
+      "Architectural_Changes": 3,
+      "Avg_Task_Complexity": 2.9,
+      "Tasks_Completed_Count": 16,
+      "Late_Night_Commits": 1,
+      "Weekend_Activity_Log": 2,
+      "Vacation_Days_Unused": 4,
+      "Sentiment_Trend": 0.12,
+      "Raw_Achievement_Log": "Wrote comprehensive E2E tests for checkout flow|Caught 12 critical bugs before production|Improved test coverage from 65% to 82%|Automated regression testing saving 8 hours/week|Collaborated with Sarah on backend testing strategy",
+      "chat_logs": [
+        {
+          "timestamp": "2024-01-15T10:00:00Z",
+          "message": "Found a bug in the payment flow, logging it now",
+          "sentiment": "neutral"
+        },
+        {
+          "timestamp": "2024-01-17T11:00:00Z",
+          "message": "All tests passing for the new feature",
+          "sentiment": "positive"
+        }
+      ],
+      "jira_tickets": [
+        {
+          "id": "PROJ-220",
+          "title": "Write E2E tests for checkout",
+          "complexity": "medium",
+          "status": "done",
+          "created_at": "2024-01-14T09:00:00Z",
+          "completed_at": "2024-01-17T11:00:00Z"
+        }
+      ],
+      "commit_logs": [
+        {
+          "hash": "a3b4c5d6",
+          "message": "Add E2E tests for checkout flow",
+          "timestamp": "2024-01-17T11:00:00Z",
+          "files_changed": 5,
+          "lines_added": 400,
+          "lines_deleted": 0
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "name": "James Anderson",
+      "role": "Backend Engineer",
+      "avatar": "https://i.pravatar.cc/150?img=15",
+      "skills": ["Java", "Spring Boot", "PostgreSQL", "Redis", "API Design"],
+      "burnout_risk": "medium",
+      "impact_score": 75,
+      "Employee_ID": "EMP-007",
+      "Current_Role": "Backend Engineer",
+      "Level": "L4",
+      "Tenure_Months": 28,
+      "Unassigned_Tasks_Picked": 5,
+      "Help_Request_Replies": 15,
+      "Cross_Team_Collaborations": 4,
+      "Critical_Incident_Ownership": 2,
+      "Peer_Review_Score": 4.0,
+      "Architectural_Changes": 4,
+      "Avg_Task_Complexity": 3.3,
+      "Tasks_Completed_Count": 14,
+      "Late_Night_Commits": 4,
+      "Weekend_Activity_Log": 3,
+      "Vacation_Days_Unused": 6,
+      "Sentiment_Trend": -0.05,
+      "Raw_Achievement_Log": "Integrated payment gateway processing $500K/month|Implemented Redis caching reducing API latency by 35%|Fixed critical security vulnerability in authentication|Collaborated with frontend team on API contract design",
+      "chat_logs": [
+        {
+          "timestamp": "2024-01-15T12:00:00Z",
+          "message": "Working on the payment integration",
+          "sentiment": "neutral"
+        },
+        {
+          "timestamp": "2024-01-18T14:00:00Z",
+          "message": "Payment API is ready for testing",
+          "sentiment": "positive"
+        }
+      ],
+      "jira_tickets": [
+        {
+          "id": "PROJ-230",
+          "title": "Integrate payment gateway",
+          "complexity": "high",
+          "status": "in_progress",
+          "created_at": "2024-01-15T09:00:00Z"
+        }
+      ],
+      "commit_logs": [
+        {
+          "hash": "e7f8g9h0",
+          "message": "Add payment gateway integration",
+          "timestamp": "2024-01-18T14:00:00Z",
+          "files_changed": 12,
+          "lines_added": 600,
+          "lines_deleted": 50
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "source_id": "1",
+      "target_id": "5",
+      "strength": 8,
+      "type": "mentorship"
+    },
+    {
+      "source_id": "1",
+      "target_id": "3",
+      "strength": 6,
+      "type": "collaboration"
+    },
+    {
+      "source_id": "5",
+      "target_id": "1",
+      "strength": 9,
+      "type": "recognition"
+    },
+    {
+      "source_id": "5",
+      "target_id": "3",
+      "strength": 7,
+      "type": "mentorship"
+    },
+    {
+      "source_id": "5",
+      "target_id": "4",
+      "strength": 8,
+      "type": "collaboration"
+    },
+    {
+      "source_id": "3",
+      "target_id": "2",
+      "strength": 5,
+      "type": "collaboration"
+    },
+    {
+      "source_id": "4",
+      "target_id": "1",
+      "strength": 7,
+      "type": "support"
+    },
+    {
+      "source_id": "6",
+      "target_id": "1",
+      "strength": 6,
+      "type": "collaboration"
+    },
+    {
+      "source_id": "6",
+      "target_id": "3",
+      "strength": 5,
+      "type": "collaboration"
+    },
+    {
+      "source_id": "7",
+      "target_id": "1",
+      "strength": 5,
+      "type": "collaboration"
+    }
+  ]
+}
+
