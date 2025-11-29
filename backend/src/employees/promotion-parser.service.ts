@@ -2,10 +2,12 @@ import { Injectable } from '@nestjs/common';
 import csvParser from 'csv-parser';
 import { Readable } from 'stream';
 import type {
-  Employee,
-  EmployeeDetail,
-  EmployeeStats,
+  PromotionEmployee,
+  Relationship,
   PromotionParserResponse,
+  ChatLog,
+  JiraTicket,
+  CommitLog,
 } from './domain/entities/promotion.interface';
 
 interface CSVRow {
@@ -39,8 +41,8 @@ export class PromotionParserService {
   async parseCSV(buffer: Buffer): Promise<PromotionParserResponse> {
     const rows: CSVRow[] = await this.parseCSVBuffer(buffer);
     
-    const employees: Employee[] = [];
-    const employeeDetails: Record<string, EmployeeDetail> = {};
+    const employees: PromotionEmployee[] = [];
+    const relationships: Relationship[] = [];
 
     rows.forEach((row, index) => {
       const id = (index + 1).toString();
@@ -50,73 +52,62 @@ export class PromotionParserService {
       const impactScore = this.calculateImpactScore(row);
       const burnoutRisk = this.calculateBurnoutRisk(row);
       
-      // Generate email from name
-      const email = this.generateEmail(row.name);
-      
       // Parse skills if available
       const skills = row.skills ? row.skills.split('|') : [];
       
-      // Determine department and team from role
-      const { department, team } = this.getDepartmentAndTeam(row.Current_Role);
+      // Generate avatar
+      const avatar = row.avatar || `https://i.pravatar.cc/150?img=${index + 10}`;
       
-      // Calculate collaborators (based on cross-team collaborations)
-      const collaboratorCount = parseInt(row.Cross_Team_Collaborations || '0');
-      const collaborators = this.generateCollaboratorIds(id, collaboratorCount, rows.length);
+      // Convert burnout risk number to category
+      const burnoutCategory = this.getBurnoutCategory(burnoutRisk);
       
-      // Create Employee object
-      const employee: Employee = {
+      // Generate chat logs
+      const chatLogs = this.generateChatLogs(row, burnoutCategory);
+      
+      // Generate jira tickets
+      const jiraTickets = this.generateJiraTickets(row, employeeCode);
+      
+      // Generate commit logs
+      const commitLogs = this.generateCommitLogs(row);
+      
+      // Create Employee object matching mock-data.json structure
+      const employee: PromotionEmployee = {
         id,
-        employeeCode,
         name: row.name,
-        email,
         role: row.Current_Role,
-        department,
-        team,
-        managerId: this.determineManagerId(id, row.Level, rows.length),
-        joinDate: this.calculateJoinDate(parseInt(row.Tenure_Months || '0')),
-        location: this.assignLocation(index),
-        impactScore,
-        burnoutRisk,
-        collaborators,
+        avatar,
+        skills,
+        burnout_risk: burnoutCategory,
+        impact_score: impactScore,
+        Employee_ID: employeeCode,
+        Current_Role: row.Current_Role,
+        Level: row.Level,
+        Tenure_Months: parseInt(row.Tenure_Months || '0'),
+        Unassigned_Tasks_Picked: parseInt(row.Unassigned_Tasks_Picked || '0'),
+        Help_Request_Replies: parseInt(row.Help_Request_Replies || '0'),
+        Cross_Team_Collaborations: parseInt(row.Cross_Team_Collaborations || '0'),
+        Critical_Incident_Ownership: parseInt(row.Critical_Incident_Ownership || '0'),
+        Peer_Review_Score: parseFloat(row.Peer_Review_Score || '0'),
+        Architectural_Changes: parseInt(row.Architectural_Changes || '0'),
+        Avg_Task_Complexity: parseFloat(row.Avg_Task_Complexity || '0'),
+        Tasks_Completed_Count: parseInt(row.Tasks_Completed_Count || '0'),
+        Late_Night_Commits: parseInt(row.Late_Night_Commits || '0'),
+        Weekend_Activity_Log: parseInt(row.Weekend_Activity_Log || '0'),
+        Vacation_Days_Unused: parseInt(row.Vacation_Days_Unused || '0'),
+        Sentiment_Trend: parseFloat(row.Sentiment_Trend || '0'),
+        Raw_Achievement_Log: row.Raw_Achievement_Log || '',
+        chat_logs: chatLogs,
+        jira_tickets: jiraTickets,
+        commit_logs: commitLogs,
       };
       
       employees.push(employee);
-      
-      // Create EmployeeDetail object
-      const stats = this.calculateStats(row);
-      const tenure = this.formatTenure(parseInt(row.Tenure_Months || '0'));
-      const achievements = row.Raw_Achievement_Log?.split('|') || [];
-      const recentAchievement = achievements.length > 0 ? achievements[0] : undefined;
-      
-      const managerName = employee.managerId 
-        ? this.getManagerName(employee.managerId, rows) 
-        : null;
-      
-      const employeeDetail: EmployeeDetail = {
-        id,
-        employeeCode,
-        name: row.name,
-        email,
-        role: row.Current_Role,
-        department,
-        team,
-        managerId: employee.managerId,
-        managerName,
-        joinDate: employee.joinDate,
-        location: employee.location,
-        impactScore,
-        burnoutRisk,
-        stats,
-        projects: Math.max(1, Math.floor(impactScore / 10)),
-        collaborators: collaborators.length,
-        tenure,
-        recentAchievement,
-      };
-      
-      employeeDetails[id] = employeeDetail;
     });
 
-    return { employees, employeeDetails };
+    // Generate relationships based on cross-team collaborations
+    relationships.push(...this.generateRelationships(employees));
+
+    return { employees, relationships };
   }
 
   private parseCSVBuffer(buffer: Buffer): Promise<CSVRow[]> {
@@ -172,23 +163,222 @@ export class PromotionParserService {
     return Math.min(100, Math.round(score));
   }
 
-  private calculateStats(row: CSVRow): EmployeeStats {
-    const peerReview = parseFloat(row.Peer_Review_Score || '0');
-    const archChanges = parseFloat(row.Architectural_Changes || '0');
-    const taskComplexity = parseFloat(row.Avg_Task_Complexity || '0');
-    const helpReplies = parseFloat(row.Help_Request_Replies || '0');
-    const crossTeam = parseFloat(row.Cross_Team_Collaborations || '0');
-    const tasksCompleted = parseFloat(row.Tasks_Completed_Count || '0');
-    const sentimentTrend = parseFloat(row.Sentiment_Trend || '0');
+  private getBurnoutCategory(burnoutScore: number): 'low' | 'medium' | 'high' {
+    if (burnoutScore >= 70) return 'high';
+    if (burnoutScore >= 40) return 'medium';
+    return 'low';
+  }
 
-    return {
-      technical: Math.min(100, Math.round(taskComplexity * 20 + archChanges * 2)),
-      leadership: Math.min(100, Math.round(crossTeam * 5 + helpReplies)),
-      empathy: Math.min(100, Math.round((sentimentTrend + 1) * 40 + peerReview * 10)),
-      velocity: Math.min(100, Math.round(tasksCompleted * 4)),
-      creativity: Math.min(100, Math.round(archChanges * 3 + taskComplexity * 15)),
-      reliability: Math.min(100, Math.round(peerReview * 18)),
-    };
+  private generateChatLogs(row: CSVRow, burnoutCategory: string): ChatLog[] {
+    const chatLogs: ChatLog[] = [];
+    const sentimentTrend = parseFloat(row.Sentiment_Trend || '0');
+    const lateNightCommits = parseInt(row.Late_Night_Commits || '0');
+    
+    // Generate chat logs based on sentiment and burnout
+    const baseDate = new Date('2024-01-15');
+    
+    if (lateNightCommits > 5) {
+      chatLogs.push({
+        timestamp: new Date(baseDate.getTime() + Math.random() * 86400000).toISOString(),
+        message: "I'll handle the deployment tonight, don't worry about it",
+        sentiment: 'neutral',
+      });
+    }
+    
+    if (sentimentTrend > 0) {
+      chatLogs.push({
+        timestamp: new Date(baseDate.getTime() + 86400000 + Math.random() * 86400000).toISOString(),
+        message: "Just finished the task, looks great!",
+        sentiment: 'positive',
+      });
+    } else if (sentimentTrend < -0.1) {
+      chatLogs.push({
+        timestamp: new Date(baseDate.getTime() + 172800000).toISOString(),
+        message: "Sure, I can take on that refactoring task",
+        sentiment: 'neutral',
+      });
+    }
+    
+    if (parseInt(row.Help_Request_Replies || '0') > 20) {
+      chatLogs.push({
+        timestamp: new Date(baseDate.getTime() + 259200000).toISOString(),
+        message: "Happy to help! Let me know if you need anything else",
+        sentiment: 'positive',
+      });
+    }
+    
+    return chatLogs;
+  }
+
+  private generateJiraTickets(row: CSVRow, employeeCode: string): JiraTicket[] {
+    const tickets: JiraTicket[] = [];
+    const tasksCompleted = parseInt(row.Tasks_Completed_Count || '0');
+    const taskComplexity = parseFloat(row.Avg_Task_Complexity || '0');
+    const achievements = row.Raw_Achievement_Log?.split('|') || [];
+    
+    const baseDate = new Date('2024-01-10');
+    let ticketCounter = Math.floor(Math.random() * 100) + 100;
+    
+    // Generate tickets from achievements
+    achievements.slice(0, Math.min(3, achievements.length)).forEach((achievement, index) => {
+      const complexity: 'low' | 'medium' | 'high' = 
+        taskComplexity >= 3.5 ? 'high' : 
+        taskComplexity >= 2.0 ? 'medium' : 'low';
+      
+      const createdAt = new Date(baseDate.getTime() + index * 172800000);
+      const completedAt = new Date(createdAt.getTime() + (complexity === 'high' ? 432000000 : 259200000));
+      
+      tickets.push({
+        id: `PROJ-${ticketCounter++}`,
+        title: achievement.substring(0, 50),
+        complexity,
+        status: 'done',
+        created_at: createdAt.toISOString(),
+        completed_at: completedAt.toISOString(),
+      });
+    });
+    
+    // Add an in-progress ticket if there are incomplete tasks
+    if (tasksCompleted < 20 || Math.random() > 0.5) {
+      tickets.push({
+        id: `PROJ-${ticketCounter++}`,
+        title: `Ongoing ${row.Current_Role} task`,
+        complexity: taskComplexity >= 3.0 ? 'high' : 'medium',
+        status: 'in_progress',
+        created_at: new Date(baseDate.getTime() + tickets.length * 172800000).toISOString(),
+      });
+    }
+    
+    return tickets;
+  }
+
+  private generateCommitLogs(row: CSVRow): CommitLog[] {
+    const commits: CommitLog[] = [];
+    const lateNightCommits = parseInt(row.Late_Night_Commits || '0');
+    const weekendActivity = parseInt(row.Weekend_Activity_Log || '0');
+    const archChanges = parseInt(row.Architectural_Changes || '0');
+    const achievements = row.Raw_Achievement_Log?.split('|') || [];
+    
+    const baseDate = new Date('2024-01-15');
+    const hashChars = 'abcdef0123456789';
+    
+    // Generate commits from achievements
+    achievements.slice(0, Math.min(4, achievements.length)).forEach((achievement, index) => {
+      const hash = Array.from({ length: 8 }, () => 
+        hashChars[Math.floor(Math.random() * hashChars.length)]
+      ).join('');
+      
+      let timestamp = new Date(baseDate.getTime() + index * 86400000);
+      
+      // Some commits are late night
+      if (index < lateNightCommits && lateNightCommits > 0) {
+        timestamp.setHours(22 + Math.floor(Math.random() * 4));
+      } else {
+        timestamp.setHours(9 + Math.floor(Math.random() * 9));
+      }
+      
+      const isArchitectural = archChanges > 0 && index < archChanges;
+      const filesChanged = isArchitectural ? 
+        Math.floor(Math.random() * 10) + 5 : 
+        Math.floor(Math.random() * 5) + 1;
+      const linesAdded = isArchitectural ? 
+        Math.floor(Math.random() * 400) + 200 : 
+        Math.floor(Math.random() * 150) + 50;
+      const linesDeleted = Math.floor(linesAdded * (Math.random() * 0.4 + 0.1));
+      
+      commits.push({
+        hash,
+        message: achievement.substring(0, 60),
+        timestamp: timestamp.toISOString(),
+        files_changed: filesChanged,
+        lines_added: linesAdded,
+        lines_deleted: linesDeleted,
+      });
+    });
+    
+    return commits;
+  }
+
+  private generateRelationships(employees: PromotionEmployee[]): Relationship[] {
+    const relationships: Relationship[] = [];
+    
+    employees.forEach((employee, index) => {
+      const collaborations = employee.Cross_Team_Collaborations;
+      const helpReplies = employee.Help_Request_Replies;
+      const level = parseInt(employee.Level.replace('L', ''));
+      
+      // High-level employees mentor others
+      if (level >= 5 && collaborations > 10) {
+        // Find lower-level employee to mentor
+        const mentees = employees.filter(e => {
+          const eLevel = parseInt(e.Level.replace('L', ''));
+          return eLevel < level && e.id !== employee.id;
+        });
+        
+        if (mentees.length > 0) {
+          const mentee = mentees[Math.floor(Math.random() * mentees.length)];
+          relationships.push({
+            source_id: employee.id,
+            target_id: mentee.id,
+            strength: Math.min(9, Math.floor(helpReplies / 10) + 5),
+            type: 'mentorship',
+          });
+        }
+      }
+      
+      // Collaborations based on cross-team work
+      if (collaborations > 5) {
+        const numCollaborations = Math.min(3, Math.floor(collaborations / 4));
+        for (let i = 0; i < numCollaborations; i++) {
+          const targetIndex = (index + i + 1) % employees.length;
+          if (targetIndex !== index) {
+            relationships.push({
+              source_id: employee.id,
+              target_id: employees[targetIndex].id,
+              strength: Math.min(8, Math.floor(collaborations / 2) + 3),
+              type: 'collaboration',
+            });
+          }
+        }
+      }
+      
+      // Recognition from high performers
+      if (employee.impact_score >= 85 && employee.Peer_Review_Score >= 4.5) {
+        // Find someone to recognize
+        const highImpactPeers = employees.filter(e => 
+          e.impact_score >= 80 && e.id !== employee.id
+        );
+        
+        if (highImpactPeers.length > 0) {
+          const recognized = highImpactPeers[Math.floor(Math.random() * highImpactPeers.length)];
+          relationships.push({
+            source_id: employee.id,
+            target_id: recognized.id,
+            strength: 9,
+            type: 'recognition',
+          });
+        }
+      }
+      
+      // Support relationships for high burnout employees
+      if (employee.burnout_risk === 'high' && employee.impact_score >= 70) {
+        const supporters = employees.filter(e => 
+          e.burnout_risk === 'low' && e.id !== employee.id
+        );
+        
+        if (supporters.length > 0) {
+          const supporter = supporters[Math.floor(Math.random() * supporters.length)];
+          relationships.push({
+            source_id: supporter.id,
+            target_id: employee.id,
+            strength: 7,
+            type: 'support',
+          });
+        }
+      }
+    });
+    
+    return relationships;
   }
 
   private generateEmail(name: string): string {
@@ -197,103 +387,5 @@ export class PromotionParserService {
       return `${parts[0]}.${parts[1].charAt(0)}@luminus.ai`;
     }
     return `${parts[0]}@luminus.ai`;
-  }
-
-  private getDepartmentAndTeam(role: string): { department: string; team: string } {
-    const roleLower = role.toLowerCase();
-    
-    if (roleLower.includes('backend') || roleLower.includes('engineer') || roleLower.includes('developer')) {
-      return { department: 'Engineering', team: 'Platform' };
-    } else if (roleLower.includes('frontend')) {
-      return { department: 'Engineering', team: 'Frontend' };
-    } else if (roleLower.includes('devops')) {
-      return { department: 'Operations', team: 'Infrastructure' };
-    } else if (roleLower.includes('designer') || roleLower.includes('ux')) {
-      return { department: 'Design', team: 'Product Design' };
-    } else if (roleLower.includes('product') || roleLower.includes('manager')) {
-      return { department: 'Product', team: 'Core Product' };
-    } else if (roleLower.includes('qa') || roleLower.includes('quality')) {
-      return { department: 'Engineering', team: 'Quality Assurance' };
-    } else if (roleLower.includes('lead')) {
-      return { department: 'Engineering', team: 'Platform' };
-    }
-    
-    return { department: 'Engineering', team: 'General' };
-  }
-
-  private determineManagerId(currentId: string, level: string, totalEmployees: number): string | null {
-    const levelNum = parseInt(level.replace('L', '')) || 0;
-    
-    // L6 and above typically don't have managers in the system
-    if (levelNum >= 6) {
-      return null;
-    }
-    
-    // Junior levels (L3 and below) report to someone
-    if (levelNum <= 3 && parseInt(currentId) > 1) {
-      // Find a higher-level employee to report to (simplified logic)
-      const managerId = Math.max(1, parseInt(currentId) - Math.floor(Math.random() * 3 + 1));
-      return managerId.toString();
-    }
-    
-    // L4-L5 might report to tech leads
-    if (levelNum <= 5 && totalEmployees > 3) {
-      return '1'; // Assume first employee is a lead
-    }
-    
-    return null;
-  }
-
-  private getManagerName(managerId: string, rows: CSVRow[]): string | null {
-    const managerIndex = parseInt(managerId) - 1;
-    if (managerIndex >= 0 && managerIndex < rows.length) {
-      return rows[managerIndex].name;
-    }
-    return null;
-  }
-
-  private calculateJoinDate(tenureMonths: number): string {
-    const today = new Date();
-    const joinDate = new Date(today);
-    joinDate.setMonth(joinDate.getMonth() - tenureMonths);
-    return joinDate.toISOString().split('T')[0];
-  }
-
-  private formatTenure(tenureMonths: number): string {
-    if (tenureMonths < 12) {
-      return `${tenureMonths} mos`;
-    }
-    const years = Math.floor(tenureMonths / 12);
-    const months = tenureMonths % 12;
-    if (months === 0) {
-      return `${years} yr${years > 1 ? 's' : ''}`;
-    }
-    return `${years}.${Math.floor(months / 12 * 10)} yrs`;
-  }
-
-  private assignLocation(index: number): string {
-    const locations = ['San Francisco', 'New York', 'Austin', 'Seattle', 'Boston'];
-    return locations[index % locations.length];
-  }
-
-  private generateCollaboratorIds(currentId: string, count: number, maxEmployees: number): string[] {
-    const collaborators: string[] = [];
-    const current = parseInt(currentId);
-    
-    for (let i = 0; i < count && collaborators.length < count; i++) {
-      let collaboratorId = Math.floor(Math.random() * maxEmployees) + 1;
-      
-      // Don't include self
-      if (collaboratorId === current) {
-        collaboratorId = (collaboratorId % maxEmployees) + 1;
-      }
-      
-      const id = collaboratorId.toString();
-      if (!collaborators.includes(id)) {
-        collaborators.push(id);
-      }
-    }
-    
-    return collaborators;
   }
 }

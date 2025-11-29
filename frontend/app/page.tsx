@@ -1,54 +1,82 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Brain, Users, Activity, Zap, ArrowRight, Shield, BarChart3 } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useState, useCallback } from "react";
+import { CyberpunkLayout } from "@/components/layout/cyberpunk-layout";
+import { NetworkGraph } from "@/components/features/dashboard/network-graph";
+import { EmployeeDetailCard } from "@/components/features/dashboard/employee-detail-card";
+import { FileUpload, type ParsedData } from "@/components/features/dashboard/file-upload";
+import { useStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import type { Employee } from "@/components/features/dashboard/network-graph";
+import type { EmployeeDetail } from "@/components/features/dashboard/employee-detail-card";
 
-const features = [
-  {
-    icon: Brain,
-    title: "AI-Powered Insights",
-    description: "Advanced machine learning algorithms analyze workforce patterns and predict trends.",
-  },
-  {
-    icon: Users,
-    title: "Network Visualization",
-    description: "Interactive galaxy view showing team relationships and collaboration patterns.",
-  },
-  {
-    icon: Activity,
-    title: "Burnout Detection",
-    description: "Early warning system to identify at-risk employees before it's too late.",
-  },
-  {
-    icon: BarChart3,
-    title: "Performance Analytics",
-    description: "Comprehensive metrics and leaderboards to track team performance.",
-  },
-  {
-    icon: Shield,
-    title: "Secure & Private",
-    description: "Enterprise-grade security with Google OAuth authentication.",
-  },
-  {
-    icon: Zap,
-    title: "Real-time Updates",
-    description: "Live data synchronization keeps your insights always up-to-date.",
-  },
-];
+export default function HomePage() {
+  const { 
+    employees, 
+    getEmployeeById, 
+    importData, 
+    importFromBackend,
+    getStats,
+    importedData,
+    loading,
+    error,
+    fetchEmployeeDetail,
+  } = useStore();
+  
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeDetail | null>(null);
+  const [isCardOpen, setIsCardOpen] = useState(false);
+  const [isUploadVisible, setIsUploadVisible] = useState(true);
 
-export default function LandingPage() {
-  const { isAuthenticated, isLoading, login } = useAuth();
-  const router = useRouter();
+  const stats = getStats();
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push("/dashboard");
+  const handleNodeClick = useCallback(async (employee: Employee) => {
+    // First try to get from cache
+    let detail: EmployeeDetail | null | undefined = getEmployeeById(employee.id);
+    
+    // If not in cache, fetch from backend
+    if (!detail) {
+      detail = await fetchEmployeeDetail(employee.id);
     }
-  }, [isAuthenticated, isLoading, router]);
+    
+    if (detail) {
+      setSelectedEmployee(detail);
+      setIsCardOpen(true);
+    }
+  }, [getEmployeeById, fetchEmployeeDetail]);
+
+  const handleCardClose = useCallback(() => {
+    setIsCardOpen(false);
+  }, []);
+
+  const handleDataParsed = useCallback((data: ParsedData) => {
+    importData(data);
+    setIsUploadVisible(false);
+  }, [importData]);
+
+  const handleFileSelected = useCallback(async (file: File) => {
+    try {
+      await importFromBackend(file);
+      setIsUploadVisible(false);
+    } catch (err) {
+      console.error("Failed to upload CSV to backend:", err);
+    }
+  }, [importFromBackend]);
+
+  const handleUploadError = useCallback((error: string) => {
+    console.error("Upload error:", error);
+  }, []);
+
+  const handleToggleUpload = useCallback(() => {
+    setIsUploadVisible((prev) => !prev);
+  }, []);
+
+  const overviewStats = [
+    { label: "Total Personnel", value: String(stats.total), trend: "+12%", isNegative: false },
+    { label: "Avg Impact Score", value: String(stats.avgImpact), trend: "+5.2%", isNegative: false },
+    { label: "High Performers", value: String(stats.highPerformers), trend: "+8%", isNegative: false },
+    { label: "Burnout Alerts", value: String(stats.burnoutAlerts), trend: stats.burnoutAlerts > 0 ? "Alert" : "OK", isNegative: stats.burnoutAlerts > 0 },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] relative overflow-hidden">
@@ -189,34 +217,32 @@ export default function LandingPage() {
               <span className="text-teal-400 text-sm">12 Employees Analyzed</span>
             </motion.div>
           </div>
-        </motion.div>
-      </section>
+        )}
 
-      {/* Features Section */}
-      <section className="relative z-10 max-w-7xl mx-auto px-8 py-20">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Everything you need to understand your workforce
-          </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Powerful features designed for modern HR teams
-          </p>
-        </motion.div>
+        {/* Data Status */}
+        {importedData && (
+          <div className="p-4 rounded-xl bg-teal-500/10 border border-teal-500/30">
+            <p className="text-teal-300 text-sm">
+              <span className="font-semibold">Data loaded:</span> {importedData.fileName} ({importedData.totalRows} employees imported)
+            </p>
+          </div>
+        )}
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="p-6 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+        {/* File Upload Section */}
+        {isUploadVisible && (
+          <FileUpload 
+            onDataParsed={handleDataParsed} 
+            onFileSelected={handleFileSelected}
+            onError={handleUploadError} 
+          />
+        )}
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-4 gap-4">
+          {overviewStats.map((stat) => (
+            <div 
+              key={stat.label} 
+              className="p-6 rounded-2xl bg-gray-900/50 border border-white/10 hover:border-purple-500/30 transition-all"
             >
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 flex items-center justify-center mb-4">
                 <feature.icon className="w-6 h-6 text-purple-400" />
