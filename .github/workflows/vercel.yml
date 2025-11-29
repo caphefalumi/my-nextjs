@@ -1,0 +1,40 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            **/node_modules
+          key: ${{ runner.os }}-npm-vercel
+          restore-keys: |
+            ${{ runner.os }}-npm-vercel
+            
+      - name: Deploy frontend to Vercel
+        working-directory: ./frontend
+        run: npx vercel --prod --token=$VERCEL_TOKEN --yes
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CLIENT_PROJECT_ID }}
+
+      - name: Deploy backend to Vercel
+        working-directory: ./backend
+        run: npx vercel --prod --token=$VERCEL_TOKEN --yes
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SERVER_PROJECT_ID }}
