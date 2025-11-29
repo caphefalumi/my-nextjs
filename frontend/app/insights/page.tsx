@@ -3,26 +3,37 @@
 import { CyberpunkLayout } from "@/components/layout/cyberpunk-layout";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { useStore } from "@/lib/store";
+import { useAI } from "@/lib/ai-context";
 import { cn } from "@/lib/utils";
 import {
   Brain, AlertTriangle, TrendingUp, Users, Lightbulb, Target,
-  ArrowRight, Sparkles, Shield, Heart, Loader2
+  ArrowRight, Sparkles, Shield, Heart, Loader2, Cpu
 } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function InsightsPage() {
-  const { insights, fetchInsights, loading, analytics, fetchAnalytics } = useStore();
+  const { insights, fetchInsights, loading, analytics, fetchAnalytics, employees } = useStore();
+  const { generateAllInsights, insights: aiInsights, isProcessing, hiddenGems, atRiskEmployees: aiAtRisk } = useAI();
+  const [useRealAI, setUseRealAI] = useState(false);
+  const [aiGenerated, setAiGenerated] = useState(false);
 
   useEffect(() => {
     fetchInsights();
     fetchAnalytics();
   }, [fetchInsights, fetchAnalytics]);
 
+  // Generate real AI insights when toggled
+  useEffect(() => {
+    if (useRealAI && employees.length > 0 && !aiGenerated) {
+      generateAllInsights(employees).then(() => setAiGenerated(true));
+    }
+  }, [useRealAI, employees, generateAllInsights, aiGenerated]);
+
+  const displayInsights = useRealAI && aiInsights.length > 0 ? aiInsights : insights?.recommendations || [];
+
   const aiRecommendations = useMemo(() => {
-    if (!insights) return [];
-    
     const iconMap: Record<string, typeof Shield> = {
       warning: AlertTriangle,
       recognition: TrendingUp,
@@ -30,15 +41,15 @@ export default function InsightsPage() {
       support: Shield,
     };
 
-    return insights.recommendations.map((rec) => ({
+    return displayInsights.map((rec: any) => ({
       icon: iconMap[rec.type] || Target,
       title: rec.title,
       description: rec.description,
       priority: rec.priority,
       action: rec.actionUrl ? "View Details" : "View",
-      link: rec.actionUrl || "/personnel",
+      link: rec.actionUrl || (rec.employeeId ? `/personnel/${rec.employeeId}` : "/personnel"),
     }));
-  }, [insights]);
+  }, [displayInsights]);
 
   if (loading || !insights) {
     return (
@@ -78,15 +89,30 @@ export default function InsightsPage() {
       <CyberpunkLayout>
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 border border-purple-500/30">
-              <Brain className="w-6 h-6 text-purple-400" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 border border-purple-500/30">
+                <Brain className="w-6 h-6 text-purple-400" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white">AI Insights</h1>
+                <p className="text-gray-400 mt-1">Intelligent workforce analysis and recommendations</p>
+              </div>
+            </div>
+            {/* Real AI Toggle */}
+            <button
+              onClick={() => setUseRealAI(!useRealAI)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-xl border transition-all",
+                useRealAI 
+                  ? "bg-gradient-to-r from-purple-600 to-teal-500 border-purple-500 text-white" 
+                  : "bg-gray-900/50 border-white/10 text-gray-400 hover:border-purple-500/50"
+              )}
+            >
+              <Cpu className={cn("w-4 h-4", isProcessing && "animate-spin")} />
+              {isProcessing ? "AI Processing..." : useRealAI ? "Real AI Active" : "Enable Real AI"}
+            </button>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">AI Insights</h1>
-            <p className="text-gray-400 mt-1">Intelligent workforce analysis and recommendations</p>
-          </div>
-        </div>
 
         {/* AI Summary Card */}
         <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/10 to-teal-500/10 border border-purple-500/20">

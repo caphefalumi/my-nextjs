@@ -71,8 +71,8 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="relative z-20 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center">
-            <Brain className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 rounded-lg overflow-hidden bg-transparent flex items-center justify-center">
+            <img src="/favicon.png" alt="Luminus.ai" className="w-full h-full object-cover" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-teal-400 bg-clip-text text-transparent">
             Luminus.ai
@@ -260,7 +260,7 @@ export default function LandingPage() {
       <footer className="relative z-10 border-t border-white/10 py-8">
         <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-purple-400" />
+            <img src="/favicon.png" alt="Luminus.ai" className="w-5 h-5 object-cover rounded-sm" />
             <span className="text-gray-400 text-sm">Luminus.ai</span>
           </div>
           <p className="text-gray-500 text-sm">

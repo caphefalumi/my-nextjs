@@ -3,23 +3,35 @@
 import { CyberpunkLayout } from "@/components/layout/cyberpunk-layout";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { useStore } from "@/lib/store";
+import { useAI } from "@/lib/ai-context";
 import { cn } from "@/lib/utils";
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, Line, Area, AreaChart
 } from "recharts";
-import { useEffect, useMemo } from "react";
-import { TrendingUp, TrendingDown, Users, AlertTriangle, Zap, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { TrendingUp, TrendingDown, Users, AlertTriangle, Zap, Loader2, Cpu, Brain } from "lucide-react";
+import { motion } from "framer-motion";
 
 const COLORS = ["#8b5cf6", "#2dd4bf", "#ec4899", "#22d3ee", "#f59e0b", "#10b981"];
 const BURNOUT_COLORS = { High: "#ef4444", Medium: "#f59e0b", Low: "#10b981" };
 
 export default function AnalyticsPage() {
-  const { analytics, fetchAnalytics, loading } = useStore();
+  const { analytics, fetchAnalytics, loading, employees } = useStore();
+  const { analyzePerformance, departmentInsights, overallHealth, isProcessing } = useAI();
+  const [useRealAI, setUseRealAI] = useState(false);
+  const [aiAnalyzed, setAiAnalyzed] = useState(false);
 
   useEffect(() => {
     fetchAnalytics();
   }, [fetchAnalytics]);
+
+  // Run AI analysis when toggled
+  useEffect(() => {
+    if (useRealAI && employees.length > 0 && !aiAnalyzed) {
+      analyzePerformance(employees).then(() => setAiAnalyzed(true));
+    }
+  }, [useRealAI, employees, analyzePerformance, aiAnalyzed]);
 
   const departmentData = useMemo(() => {
     if (!analytics) return [];
@@ -72,10 +84,42 @@ export default function AnalyticsPage() {
       <CyberpunkLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
-          <p className="text-gray-400 mt-1">Workforce insights and metrics</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
+            <p className="text-gray-400 mt-1">Workforce insights and metrics</p>
+          </div>
+          {/* Real AI Toggle */}
+          <button
+            onClick={() => setUseRealAI(!useRealAI)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-xl border transition-all",
+              useRealAI 
+                ? "bg-gradient-to-r from-purple-600 to-teal-500 border-purple-500 text-white" 
+                : "bg-gray-900/50 border-white/10 text-gray-400 hover:border-purple-500/50"
+            )}
+          >
+            <Cpu className={cn("w-4 h-4", isProcessing && "animate-spin")} />
+            {isProcessing ? "AI Analyzing..." : useRealAI ? "Real AI Active" : "Enable Real AI"}
+          </button>
         </div>
+
+        {/* AI Analysis Banner */}
+        {useRealAI && overallHealth && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-teal-500/10 border border-purple-500/30"
+          >
+            <div className="flex items-center gap-3">
+              <Brain className="w-6 h-6 text-purple-400" />
+              <div>
+                <p className="text-white font-medium">AI Workforce Analysis</p>
+                <p className="text-gray-400 text-sm">{overallHealth}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-4 gap-4">

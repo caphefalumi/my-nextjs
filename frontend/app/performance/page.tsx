@@ -3,18 +3,29 @@
 import { CyberpunkLayout } from "@/components/layout/cyberpunk-layout";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { useStore } from "@/lib/store";
+import { useAI } from "@/lib/ai-context";
 import { cn } from "@/lib/utils";
-import { Trophy, Medal, Award, Star, TrendingUp, Target, ArrowUp, ArrowDown, Loader2 } from "lucide-react";
+import { Trophy, Medal, Award, Star, TrendingUp, Target, ArrowUp, ArrowDown, Loader2, Cpu, Brain } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function PerformancePage() {
-  const { performance, fetchPerformance, loading } = useStore();
+  const { performance, fetchPerformance, loading, employees } = useStore();
+  const { analyzePerformance, departmentInsights, overallHealth, isProcessing } = useAI();
+  const [useRealAI, setUseRealAI] = useState(false);
+  const [aiAnalyzed, setAiAnalyzed] = useState(false);
 
   useEffect(() => {
     fetchPerformance();
   }, [fetchPerformance]);
+
+  // Analyze with real AI when toggled
+  useEffect(() => {
+    if (useRealAI && employees.length > 0 && !aiAnalyzed) {
+      analyzePerformance(employees).then(() => setAiAnalyzed(true));
+    }
+  }, [useRealAI, employees, analyzePerformance, aiAnalyzed]);
 
   const topPerformers = useMemo(() => {
     if (!performance) return [];
@@ -58,10 +69,42 @@ export default function PerformancePage() {
       <CyberpunkLayout>
         <div className="space-y-6">
           {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-white">Performance Leaderboard</h1>
-            <p className="text-gray-400 mt-1">Track and celebrate top performers</p>
-        </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Performance Leaderboard</h1>
+              <p className="text-gray-400 mt-1">Track and celebrate top performers</p>
+            </div>
+            {/* Real AI Toggle */}
+            <button
+              onClick={() => setUseRealAI(!useRealAI)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-xl border transition-all",
+                useRealAI 
+                  ? "bg-gradient-to-r from-purple-600 to-teal-500 border-purple-500 text-white" 
+                  : "bg-gray-900/50 border-white/10 text-gray-400 hover:border-purple-500/50"
+              )}
+            >
+              <Cpu className={cn("w-4 h-4", isProcessing && "animate-spin")} />
+              {isProcessing ? "AI Analyzing..." : useRealAI ? "Real AI Active" : "Enable Real AI"}
+            </button>
+          </div>
+
+          {/* AI Analysis Banner */}
+          {useRealAI && overallHealth && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-teal-500/10 border border-purple-500/30"
+            >
+              <div className="flex items-center gap-3">
+                <Brain className="w-6 h-6 text-purple-400" />
+                <div>
+                  <p className="text-white font-medium">AI Performance Analysis</p>
+                  <p className="text-gray-400 text-sm">{overallHealth}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
         {/* Top 3 Podium */}
         <div className="grid grid-cols-3 gap-6 items-end">
@@ -149,24 +192,45 @@ export default function PerformancePage() {
               Department Rankings
             </h3>
             <div className="space-y-3">
-              {departmentScores.map((dept, index) => (
-                <div key={dept.department} className="flex items-center gap-4 p-3 rounded-xl bg-white/5">
-                  <span className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm",
-                    index === 0 ? "bg-yellow-500/20 text-yellow-400" : "bg-gray-800 text-gray-400"
-                  )}>
-                    {index + 1}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-white font-medium">{dept.department}</p>
-                    <p className="text-gray-500 text-sm">{dept.employeeCount} employees</p>
+              {departmentScores.map((dept, index) => {
+                const aiInsight = departmentInsights.find((d) => d.department === dept.department);
+                return (
+                  <div key={dept.department} className="p-3 rounded-xl bg-white/5">
+                    <div className="flex items-center gap-4">
+                      <span className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm",
+                        index === 0 ? "bg-yellow-500/20 text-yellow-400" : "bg-gray-800 text-gray-400"
+                      )}>
+                        {index + 1}
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-white font-medium">{dept.department}</p>
+                        <p className="text-gray-500 text-sm">{dept.employeeCount} employees</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-purple-400 font-semibold">{dept.avgScore}</p>
+                        <p className="text-gray-500 text-xs">avg score</p>
+                      </div>
+                    </div>
+                    {/* AI Insight for Department */}
+                    {useRealAI && aiInsight && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-2 pt-2 border-t border-white/5"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "w-2 h-2 rounded-full",
+                            aiInsight.trend === "up" ? "bg-teal-400" : aiInsight.trend === "down" ? "bg-red-400" : "bg-yellow-400"
+                          )} />
+                          <p className="text-gray-400 text-xs">{aiInsight.insight}</p>
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-purple-400 font-semibold">{dept.avgScore}</p>
-                    <p className="text-gray-500 text-xs">avg score</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
