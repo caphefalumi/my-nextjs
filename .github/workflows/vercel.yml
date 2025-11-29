@@ -25,9 +25,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-          cache-dependency-path: |
-            frontend/yarn.lock
-            backend/yarn.lock
+          cache-dependency-path: backend/yarn.lock
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
@@ -39,7 +42,7 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: ./frontend
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Install backend dependencies
         working-directory: ./backend
