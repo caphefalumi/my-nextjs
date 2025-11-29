@@ -126,7 +126,7 @@
       "Weekend_Activity_Log": 1,
       "Vacation_Days_Unused": 2,
       "Sentiment_Trend": 0.25,
-      "Raw_Achievement_Log": "Updated button component styles|Added hover effects to card components|Fixed color picker CSS styling|Improved UI consistency across 3 pages"
+      "Raw_Achievement_Log": "Updated button component styles|Added hover effects to card components|Fixed color picker CSS styling|Improved UI consistency across 3 pages",
       "chat_logs": [
         {
           "timestamp": "2024-01-15T10:00:00Z",
@@ -226,7 +226,7 @@
       "Weekend_Activity_Log": 4,
       "Vacation_Days_Unused": 5,
       "Sentiment_Trend": 0.05,
-      "Raw_Achievement_Log": "Built user dashboard API handling 10K+ requests/day|Deployed real-time notification system|Implemented WebSocket connection pooling|Collaborated with DevOps on CI/CD pipeline improvements"
+      "Raw_Achievement_Log": "Built user dashboard API handling 10K+ requests/day|Deployed real-time notification system|Implemented WebSocket connection pooling|Collaborated with DevOps on CI/CD pipeline improvements",
       "chat_logs": [
         {
           "timestamp": "2024-01-15T11:00:00Z",
@@ -299,7 +299,7 @@
       "Weekend_Activity_Log": 6,
       "Vacation_Days_Unused": 7,
       "Sentiment_Trend": 0.02,
-      "Raw_Achievement_Log": "Set up Kubernetes cluster reducing deployment time by 60%|Configured Prometheus monitoring preventing 3 potential outages|Automated infrastructure provisioning saving 15 hours/week|Led incident response for 6 critical production issues|Designed disaster recovery strategy"
+      "Raw_Achievement_Log": "Set up Kubernetes cluster reducing deployment time by 60%|Configured Prometheus monitoring preventing 3 potential outages|Automated infrastructure provisioning saving 15 hours/week|Led incident response for 6 critical production issues|Designed disaster recovery strategy",
       "chat_logs": [
         {
           "timestamp": "2024-01-15T09:00:00Z",
@@ -373,7 +373,7 @@
       "Weekend_Activity_Log": 3,
       "Vacation_Days_Unused": 3,
       "Sentiment_Trend": 0.1,
-      "Raw_Achievement_Log": "Designed microservices architecture supporting 10x scale|Authored technical documentation used by entire engineering org|Mentored 8 engineers across 3 teams|Led architecture review process reducing tech debt by 30%|Established code review guidelines improving code quality|Recognized Sarah Chen's exceptional contributions"
+      "Raw_Achievement_Log": "Designed microservices architecture supporting 10x scale|Authored technical documentation used by entire engineering org|Mentored 8 engineers across 3 teams|Led architecture review process reducing tech debt by 30%|Established code review guidelines improving code quality|Recognized Sarah Chen's exceptional contributions",
       "chat_logs": [
         {
           "timestamp": "2024-01-15T08:00:00Z",
@@ -446,7 +446,7 @@
       "Weekend_Activity_Log": 2,
       "Vacation_Days_Unused": 4,
       "Sentiment_Trend": 0.12,
-      "Raw_Achievement_Log": "Wrote comprehensive E2E tests for checkout flow|Caught 12 critical bugs before production|Improved test coverage from 65% to 82%|Automated regression testing saving 8 hours/week|Collaborated with Sarah on backend testing strategy"
+      "Raw_Achievement_Log": "Wrote comprehensive E2E tests for checkout flow|Caught 12 critical bugs before production|Improved test coverage from 65% to 82%|Automated regression testing saving 8 hours/week|Collaborated with Sarah on backend testing strategy",
       "chat_logs": [
         {
           "timestamp": "2024-01-15T10:00:00Z",
@@ -504,7 +504,7 @@
       "Weekend_Activity_Log": 3,
       "Vacation_Days_Unused": 6,
       "Sentiment_Trend": -0.05,
-      "Raw_Achievement_Log": "Integrated payment gateway processing $500K/month|Implemented Redis caching reducing API latency by 35%|Fixed critical security vulnerability in authentication|Collaborated with frontend team on API contract design"
+      "Raw_Achievement_Log": "Integrated payment gateway processing $500K/month|Implemented Redis caching reducing API latency by 35%|Fixed critical security vulnerability in authentication|Collaborated with frontend team on API contract design",
       "chat_logs": [
         {
           "timestamp": "2024-01-15T12:00:00Z",

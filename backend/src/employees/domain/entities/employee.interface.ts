@@ -33,23 +33,27 @@ export interface Employee {
   chat_logs: ChatLog[];
   jira_tickets: JiraTicket[];
   commit_logs: CommitLog[];
-  // CSV Fields
+  // CSV Fields - Identity & Role
   Employee_ID: string;
   Current_Role: string;
   Level: string;
   Tenure_Months: number;
+  // CSV Fields - Shadow Leader Signals
   Unassigned_Tasks_Picked: number;
   Help_Request_Replies: number;
   Cross_Team_Collaborations: number;
   Critical_Incident_Ownership: number;
+  // CSV Fields - Quality over Quantity
   Peer_Review_Score: number;
   Architectural_Changes: number;
   Avg_Task_Complexity: number;
   Tasks_Completed_Count: number;
+  // CSV Fields - Burnout Indicators
   Late_Night_Commits: number;
   Weekend_Activity_Log: number;
   Vacation_Days_Unused: number;
   Sentiment_Trend: number;
+  // CSV Fields - The Golden Column
   Raw_Achievement_Log: string;
 }
 
