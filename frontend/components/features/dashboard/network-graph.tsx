@@ -6,11 +6,21 @@ import { useMemo, useState } from "react";
 
 // Interfaces
 export interface Employee {
+  // Identity & Role
   id: string;
+  employeeCode: string;
   name: string;
+  email: string;
   role: string;
   department: string;
+  team: string;
+  managerId: string | null;
+  joinDate: string;
+  location: string;
+  // Performance
   impactScore: number;
+  burnoutRisk: number;
+  // Network
   collaborators: string[];
   avatar?: string;
 }
@@ -217,7 +227,7 @@ export function NetworkGraph({ employees, onNodeClick, className }: NetworkGraph
     <div
       className={cn(
         "relative w-full h-[600px] rounded-2xl overflow-hidden",
-        "bg-black/40 backdrop-blur-sm",
+        "bg-gray-900/90",
         "border border-white/10",
         className
       )}
@@ -246,54 +256,42 @@ export function NetworkGraph({ employees, onNodeClick, className }: NetworkGraph
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{
-              duration: 0.5,
-              delay: index * 0.1,
-              type: "spring",
-              stiffness: 200,
+              duration: 0.3,
+              delay: index * 0.05,
             }}
-            whileHover={{ scale: 1.2 }}
+            whileHover={{ scale: 1.15 }}
             onMouseEnter={() => handleNodeHover(employee.id)}
             onMouseLeave={() => handleNodeHover(null)}
             onClick={() => handleNodeSelect(employee)}
           >
-            <motion.div
-              animate={{ y: [0, -5, 0] }}
-              transition={{
-                duration: 3 + (index % 3),
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              {/* Pulse Ring */}
-              {employee.impactScore >= 70 && (
-                <motion.div
-                  className={cn(
-                    "absolute inset-0 rounded-full bg-gradient-to-r",
-                    getNodeColor(employee.impactScore)
-                  )}
-                  animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  style={{ width: nodeSize, height: nodeSize }}
-                />
-              )}
-
-              {/* Node Circle */}
+            {/* Pulse Ring - CSS animation instead of framer-motion */}
+            {employee.impactScore >= 70 && (
               <div
                 className={cn(
-                  "relative rounded-full bg-gradient-to-br",
-                  getNodeColor(employee.impactScore),
-                  getNodeGlow(employee.impactScore),
-                  "border-2 border-white/30",
-                  "flex items-center justify-center",
-                  "font-bold text-white text-xs"
+                  "absolute inset-0 rounded-full bg-gradient-to-r animate-pulse",
+                  getNodeColor(employee.impactScore)
                 )}
-                style={{ width: nodeSize, height: nodeSize }}
-              >
-                {getInitials(employee.name)}
-              </div>
+                style={{ width: nodeSize, height: nodeSize, opacity: 0.3 }}
+              />
+            )}
 
-              {isHovered && <NodeTooltip employee={employee} />}
-            </motion.div>
+            {/* Node Circle */}
+            <div
+              className={cn(
+                "relative rounded-full bg-gradient-to-br",
+                getNodeColor(employee.impactScore),
+                getNodeGlow(employee.impactScore),
+                "border-2 border-white/30",
+                "flex items-center justify-center",
+                "font-bold text-white text-xs",
+                "transition-transform duration-200"
+              )}
+              style={{ width: nodeSize, height: nodeSize }}
+            >
+              {getInitials(employee.name)}
+            </div>
+
+            {isHovered && <NodeTooltip employee={employee} />}
           </motion.div>
         );
       })}

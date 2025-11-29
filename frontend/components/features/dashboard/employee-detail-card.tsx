@@ -10,6 +10,7 @@ import {
   Clock,
   Award,
   Zap,
+  Mail,
 } from "lucide-react";
 import {
   Radar,
@@ -20,6 +21,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 // Interfaces
 export interface EmployeeStats {
@@ -32,18 +34,28 @@ export interface EmployeeStats {
 }
 
 export interface EmployeeDetail {
+  // Identity & Role
   id: string;
+  employeeCode: string;
   name: string;
+  email: string;
   role: string;
   department: string;
-  avatar?: string;
+  team: string;
+  managerId: string | null;
+  managerName: string | null;
+  joinDate: string;
+  location: string;
+  // Performance
   impactScore: number;
   burnoutRisk: number;
   stats: EmployeeStats;
+  // Work Info
   projects: number;
   collaborators: number;
   tenure: string;
   recentAchievement?: string;
+  avatar?: string;
 }
 
 interface EmployeeDetailCardProps {
@@ -290,32 +302,27 @@ export function EmployeeDetailCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             onClick={handleClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/70 z-50"
           />
 
           {/* Card Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
             <div
               className={cn(
                 "relative w-full max-w-2xl pointer-events-auto",
-                "bg-gradient-to-br from-gray-900/95 to-black/95",
-                "backdrop-blur-xl rounded-3xl overflow-hidden",
+                "bg-gray-900 rounded-3xl overflow-hidden",
                 "border border-purple-500/30",
-                "shadow-[0_0_60px_rgba(139,92,246,0.3)]"
+                "shadow-2xl shadow-purple-500/20"
               )}
             >
-              {/* Glowing Border Effect */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500/20 via-teal-500/20 to-purple-500/20 p-[1px]">
-                <div className="w-full h-full bg-gray-900 rounded-3xl" />
-              </div>
-
               {/* Content */}
               <div className="relative z-10 p-6">
                 {/* Header */}
@@ -382,39 +389,42 @@ export function EmployeeDetailCard({
 
                 {/* Footer Actions */}
                 <div className="flex gap-3 mt-6">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={cn(
-                      "flex-1 py-3 px-4 rounded-xl",
-                      "bg-gradient-to-r from-purple-500 to-teal-500",
-                      "text-white font-semibold",
-                      "shadow-[0_0_20px_rgba(139,92,246,0.4)]",
-                      "hover:shadow-[0_0_30px_rgba(139,92,246,0.6)]",
-                      "transition-shadow"
-                    )}
-                  >
-                    View Full Profile
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={cn(
-                      "py-3 px-6 rounded-xl",
-                      "bg-white/5 border border-white/10",
-                      "text-gray-300 font-semibold",
-                      "hover:bg-white/10 hover:border-purple-500/30",
-                      "transition-all"
-                    )}
-                  >
-                    Message
-                  </motion.button>
+                  <Link href={`/personnel/${employee.id}`} className="flex-1">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleClose}
+                      className={cn(
+                        "w-full py-3 px-4 rounded-xl",
+                        "bg-gradient-to-r from-purple-500 to-teal-500",
+                        "text-white font-semibold",
+                        "hover:opacity-90",
+                        "transition-opacity"
+                      )}
+                    >
+                      View Full Profile
+                    </motion.button>
+                  </Link>
+                  <a href={`mailto:${employee.email}`}>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={cn(
+                        "py-3 px-6 rounded-xl flex items-center gap-2",
+                        "bg-white/5 border border-white/10",
+                        "text-gray-300 font-semibold",
+                        "hover:bg-white/10 hover:border-purple-500/30",
+                        "transition-all"
+                      )}
+                    >
+                      <Mail className="w-4 h-4" />
+                      Email
+                    </motion.button>
+                  </a>
                 </div>
               </div>
 
-              {/* Decorative Corner Elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl" />
+
             </div>
           </motion.div>
         </>

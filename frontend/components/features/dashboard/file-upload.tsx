@@ -158,12 +158,13 @@ function DataPreview({ data }: { data: ParsedData }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       className={cn(
         "rounded-2xl overflow-hidden",
-        "bg-black/40 backdrop-blur-sm",
+        "bg-gray-900/95",
         "border border-white/10"
       )}
     >
@@ -380,22 +381,15 @@ export function FileUpload({
         onClick={handleZoneClick}
         className={cn(
           "relative p-8 rounded-2xl cursor-pointer",
-          "border-2 border-dashed transition-all duration-300",
-          "bg-black/40 backdrop-blur-sm",
+          "border-2 border-dashed transition-colors duration-200",
+          "bg-gray-900/90",
           status === "dragging" && "border-purple-500 bg-purple-500/10",
           status === "success" && "border-teal-500/50 bg-teal-500/5",
           status === "error" && "border-red-500/50 bg-red-500/5",
           status === "idle" && "border-white/20 hover:border-purple-500/50 hover:bg-white/5",
           isProcessing && "border-purple-500/50 pointer-events-none"
         )}
-        animate={{
-          boxShadow:
-            status === "dragging"
-              ? "0 0 40px rgba(139, 92, 246, 0.4)"
-              : status === "success"
-              ? "0 0 30px rgba(45, 212, 191, 0.3)"
-              : "0 0 0px transparent",
-        }}
+
       >
         <input
           ref={fileInputRef}

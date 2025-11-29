@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 // Interfaces
 interface NavItem {
@@ -64,47 +66,46 @@ function NavButton({
   item,
   isActive,
   isExpanded,
-  onSelect,
 }: {
   item: NavItem;
   isActive: boolean;
   isExpanded: boolean;
-  onSelect: () => void;
 }) {
   return (
-    <motion.button
-      onClick={onSelect}
-      className={cn(
-        "w-full flex items-center gap-3 px-3 py-3 rounded-xl",
-        "transition-all duration-300",
-        "hover:bg-white/10",
-        isActive
-          ? "bg-gradient-to-r from-purple-500/20 to-teal-500/20 border border-purple-500/30"
-          : "border border-transparent"
-      )}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      <item.icon
+    <Link href={item.href}>
+      <motion.div
         className={cn(
-          "w-5 h-5 flex-shrink-0",
-          isActive ? "text-purple-400" : "text-gray-400"
+          "w-full flex items-center gap-3 px-3 py-3 rounded-xl",
+          "transition-all duration-200",
+          "hover:bg-white/10",
+          isActive
+            ? "bg-gradient-to-r from-purple-500/20 to-teal-500/20 border border-purple-500/30"
+            : "border border-transparent"
         )}
-      />
-      <motion.span
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isExpanded ? 1 : 0 }}
-        className={cn(
-          "whitespace-nowrap text-sm",
-          isActive ? "text-white" : "text-gray-400"
-        )}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
-        {item.label}
-      </motion.span>
-      {isActive && isExpanded && (
-        <ChevronRight className="w-4 h-4 text-purple-400 ml-auto" />
-      )}
-    </motion.button>
+        <item.icon
+          className={cn(
+            "w-5 h-5 flex-shrink-0",
+            isActive ? "text-purple-400" : "text-gray-400"
+          )}
+        />
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isExpanded ? 1 : 0 }}
+          className={cn(
+            "whitespace-nowrap text-sm",
+            isActive ? "text-white" : "text-gray-400"
+          )}
+        >
+          {item.label}
+        </motion.span>
+        {isActive && isExpanded && (
+          <ChevronRight className="w-4 h-4 text-purple-400 ml-auto" />
+        )}
+      </motion.div>
+    </Link>
   );
 }
 
@@ -135,12 +136,11 @@ function StatusIndicator({ isExpanded }: { isExpanded: boolean }) {
 
 // Main Component
 export function CyberpunkLayout({ children }: CyberpunkLayoutProps) {
-  const [activeItem, setActiveItem] = useState("/");
+  const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleMouseEnter = () => setIsExpanded(true);
   const handleMouseLeave = () => setIsExpanded(false);
-  const handleNavSelect = (href: string) => setActiveItem(href);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] relative overflow-hidden">
@@ -156,20 +156,20 @@ export function CyberpunkLayout({ children }: CyberpunkLayoutProps) {
         }}
       />
 
-      {/* Ambient Glow Effects */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[128px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/20 rounded-full blur-[128px] pointer-events-none" />
+      {/* Ambient Glow Effects - reduced blur for performance */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Glassmorphism Sidebar */}
+      {/* Sidebar */}
       <motion.aside
         initial={{ width: 80 }}
         animate={{ width: isExpanded ? 240 : 80 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        transition={{ duration: 0.2 }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         className={cn(
           "fixed left-0 top-0 h-full z-50",
-          "bg-white/5 backdrop-blur-xl",
+          "bg-gray-900/95",
           "border-r border-white/10",
           "flex flex-col py-6"
         )}
@@ -182,9 +182,8 @@ export function CyberpunkLayout({ children }: CyberpunkLayoutProps) {
               <li key={item.href}>
                 <NavButton
                   item={item}
-                  isActive={activeItem === item.href}
+                  isActive={pathname === item.href}
                   isExpanded={isExpanded}
-                  onSelect={() => handleNavSelect(item.href)}
                 />
               </li>
             ))}
