@@ -56,8 +56,8 @@ export default function HomePage() {
       {/* Navigation */}
       <nav className="relative z-20 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center">
-            <Brain className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 rounded-lg overflow-hidden bg-transparent flex items-center justify-center">
+            <img src="/favicon.png" alt="Luminus.ai" className="w-full h-full object-cover" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-teal-400 bg-clip-text text-transparent">
             Luminus.ai

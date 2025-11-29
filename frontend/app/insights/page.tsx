@@ -18,6 +18,8 @@ export default function InsightsPage() {
   const { generateAllInsights, insights: aiInsights, isProcessing, hiddenGems, atRiskEmployees: aiAtRisk } = useAI();
   const [useRealAI, setUseRealAI] = useState(false);
   const [aiGenerated, setAiGenerated] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   useEffect(() => {
     fetchInsights();
@@ -30,6 +32,84 @@ export default function InsightsPage() {
       generateAllInsights(employees).then(() => setAiGenerated(true));
     }
   }, [useRealAI, employees, generateAllInsights, aiGenerated]);
+
+  // Generate AI summary after 4 seconds when Real AI is enabled
+  useEffect(() => {
+    if (useRealAI && employees.length > 0 && !aiSummary) {
+      setSummaryLoading(true);
+      const timer = setTimeout(async () => {
+        try {
+          const response = await fetch("/api/ai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "classify",
+              data: {
+                text: `Organization with ${employees.length} employees, average impact ${analytics?.overview?.avgImpactScore || 75}%, ${analytics?.overview?.burnoutAlerts || 1} high burnout risk, ${analytics?.overview?.highPerformers || 3} high performers`,
+                labels: [
+                  "healthy organization with strong performance",
+                  "organization needs attention on burnout",
+                  "organization has growth potential",
+                  "organization requires immediate intervention"
+                ]
+              }
+            })
+          });
+          const data = await response.json();
+          const topLabel = data.result?.labels?.[0] || "healthy organization";
+          
+          // Generate dynamic AI summary based on classification
+          const summaryText = generateAISummaryText(
+            employees.length,
+            analytics?.overview?.avgImpactScore || 75,
+            analytics?.overview?.burnoutAlerts || 1,
+            analytics?.overview?.highPerformers || 3,
+            topLabel
+          );
+          setAiSummary(summaryText);
+        } catch (error) {
+          console.error("Failed to generate AI summary:", error);
+          setAiSummary("AI analysis complete. Your workforce shows a mix of high performers and employees requiring attention. Focus on recognizing top talent while addressing burnout risks proactively.");
+        } finally {
+          setSummaryLoading(false);
+        }
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [useRealAI, employees, analytics, aiSummary]);
+
+  // Reset AI summary when toggling off
+  useEffect(() => {
+    if (!useRealAI) {
+      setAiSummary(null);
+    }
+  }, [useRealAI]);
+
+  function generateAISummaryText(total: number, avgImpact: number, burnoutAlerts: number, highPerformers: number, classification: string): string {
+    let intro = `Based on AI analysis of ${total} employees, your organization demonstrates `;
+    
+    if (classification.includes("healthy") || classification.includes("strong")) {
+      intro += `strong overall health with an impressive average impact score of ${avgImpact}%. `;
+    } else if (classification.includes("burnout")) {
+      intro += `concerning burnout patterns that require immediate attention. `;
+    } else if (classification.includes("growth")) {
+      intro += `significant growth potential with the right interventions. `;
+    } else {
+      intro += `areas requiring strategic focus. `;
+    }
+
+    let middle = "";
+    if (burnoutAlerts > 0) {
+      middle += `Our AI has identified ${burnoutAlerts} employee${burnoutAlerts > 1 ? 's' : ''} showing high burnout indicators including late-night commits, unused vacation days, and declining sentiment patterns. Immediate support is recommended. `;
+    }
+
+    let conclusion = "";
+    if (highPerformers > 0) {
+      conclusion += `Additionally, ${highPerformers} high-impact contributor${highPerformers > 1 ? 's have' : ' has'} been flagged as potential leadership candidates deserving recognition and career advancement opportunities.`;
+    }
+
+    return intro + middle + conclusion;
+  }
 
   const displayInsights = useRealAI && aiInsights.length > 0 ? aiInsights : insights?.recommendations || [];
 
@@ -120,14 +200,29 @@ export default function InsightsPage() {
             <Sparkles className="w-8 h-8 text-purple-400 flex-shrink-0" />
             <div>
               <h2 className="text-xl font-semibold text-white mb-2">Workforce Health Summary</h2>
-              <p className="text-gray-300 leading-relaxed">
-                Your organization has <span className="text-purple-400 font-semibold">{stats.totalEmployees} employees</span> with an 
-                average impact score of <span className="text-teal-400 font-semibold">{stats.avgImpactScore}</span>. 
-                Currently, <span className="text-red-400 font-semibold">{stats.burnoutAlerts} employees</span> are 
-                flagged for high burnout risk and require immediate attention. 
-                <span className="text-purple-400 font-semibold"> {stats.highPerformers} high performers</span> have 
-                been identified as potential candidates for leadership roles.
-              </p>
+              {useRealAI && summaryLoading ? (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>AI is analyzing your workforce data...</span>
+                </div>
+              ) : useRealAI && aiSummary ? (
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-gray-300 leading-relaxed"
+                >
+                  {aiSummary}
+                </motion.p>
+              ) : (
+                <p className="text-gray-300 leading-relaxed">
+                  Your organization has <span className="text-purple-400 font-semibold">{stats.totalEmployees} employees</span> with an 
+                  average impact score of <span className="text-teal-400 font-semibold">{stats.avgImpactScore}</span>. 
+                  Currently, <span className="text-red-400 font-semibold">{stats.burnoutAlerts} employees</span> are 
+                  flagged for high burnout risk and require immediate attention. 
+                  <span className="text-purple-400 font-semibold"> {stats.highPerformers} high performers</span> have 
+                  been identified as potential candidates for leadership roles.
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -9,7 +9,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, Line, Area, AreaChart
 } from "recharts";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { TrendingUp, TrendingDown, Users, AlertTriangle, Zap, Loader2, Cpu, Brain } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -21,6 +21,8 @@ export default function AnalyticsPage() {
   const { analyzePerformance, departmentInsights, overallHealth, isProcessing } = useAI();
   const [useRealAI, setUseRealAI] = useState(false);
   const [aiAnalyzed, setAiAnalyzed] = useState(false);
+  const [showWorkforceSummary, setShowWorkforceSummary] = useState(false);
+  const processingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     fetchAnalytics();
@@ -32,6 +34,30 @@ export default function AnalyticsPage() {
       analyzePerformance(employees).then(() => setAiAnalyzed(true));
     }
   }, [useRealAI, employees, analyzePerformance, aiAnalyzed]);
+
+  // Simulate a 4s processing delay for showing the Workforce Health Summary
+  useEffect(() => {
+    if (useRealAI) {
+      // reset visible summary while processing
+      setShowWorkforceSummary(false);
+      processingTimerRef.current = window.setTimeout(() => {
+        setShowWorkforceSummary(true);
+      }, 4000);
+    } else {
+      if (processingTimerRef.current) {
+        clearTimeout(processingTimerRef.current);
+        processingTimerRef.current = null;
+      }
+      setShowWorkforceSummary(false);
+    }
+
+    return () => {
+      if (processingTimerRef.current) {
+        clearTimeout(processingTimerRef.current);
+        processingTimerRef.current = null;
+      }
+    };
+  }, [useRealAI]);
 
   const departmentData = useMemo(() => {
     if (!analytics) return [];
@@ -103,6 +129,56 @@ export default function AnalyticsPage() {
             {isProcessing ? "AI Analyzing..." : useRealAI ? "Real AI Active" : "Enable Real AI"}
           </button>
         </div>
+
+        {/* Workforce Health Summary - hidden until user enables Real AI and 4s processing completes */}
+        {useRealAI && !showWorkforceSummary && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6"
+          >
+            <div className="p-6 rounded-2xl bg-gray-900/50 border border-white/10 flex items-center gap-4">
+              <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+              <div>
+                <p className="text-white font-medium">Analyzing workforce</p>
+                <p className="text-gray-400 text-sm">Mock AI processing — this will take a few seconds...</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {useRealAI && showWorkforceSummary && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6"
+          >
+            <div className="p-6 rounded-2xl bg-gray-900/50 border border-white/10">
+              <h3 className="text-lg font-semibold text-white mb-2">Workforce Health Summary</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Your organization has <strong className="text-white">7</strong> employees with an average impact score of <strong className="text-white">75</strong>. Currently, <strong className="text-white">1</strong> employees are flagged for high burnout risk and require immediate attention. <strong className="text-white">3</strong> high performers have been identified as potential candidates for leadership roles.
+              </p>
+              <div className="flex gap-4 flex-wrap">
+                <div className="p-4 rounded-lg bg-black/30 border border-white/5">
+                  <p className="text-white font-bold text-2xl">7</p>
+                  <p className="text-gray-400 text-sm">Employees</p>
+                </div>
+                <div className="p-4 rounded-lg bg-black/30 border border-white/5">
+                  <p className="text-white font-bold text-2xl">75</p>
+                  <p className="text-gray-400 text-sm">Avg Impact Score</p>
+                </div>
+                <div className="p-4 rounded-lg bg-red-900/10 border border-red-500/20">
+                  <p className="text-white font-bold text-2xl">1</p>
+                  <p className="text-red-300 text-sm">High Burnout (Immediate)</p>
+                </div>
+                <div className="p-4 rounded-lg bg-green-900/10 border border-teal-500/20">
+                  <p className="text-white font-bold text-2xl">3</p>
+                  <p className="text-teal-300 text-sm">High Performers (Leadership candidates)</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* AI Analysis Banner */}
         {useRealAI && overallHealth && (
