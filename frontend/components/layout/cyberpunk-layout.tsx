@@ -9,11 +9,13 @@ import {
   Settings,
   Zap,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 // Interfaces
 interface NavItem {
@@ -109,6 +111,59 @@ function NavButton({
   );
 }
 
+function UserProfile({ isExpanded }: { isExpanded: boolean }) {
+  const { user, logout } = useAuth();
+
+  if (!user) return null;
+
+  return (
+    <div className="px-3 mb-4">
+      <div
+        className={cn(
+          "p-3 rounded-xl",
+          "bg-gradient-to-r from-purple-500/10 to-teal-500/10",
+          "border border-purple-500/20"
+        )}
+      >
+        <div className="flex items-center gap-3">
+          {user.picture ? (
+            <img
+              src={user.picture}
+              alt={user.name}
+              className="w-8 h-8 rounded-full flex-shrink-0"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-sm font-bold">
+                {user.name?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isExpanded ? 1 : 0 }}
+            className="flex-1 min-w-0"
+          >
+            <p className="text-sm font-medium text-white truncate">{user.name}</p>
+            <p className="text-xs text-gray-400 truncate">{user.email}</p>
+          </motion.div>
+        </div>
+        {isExpanded && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={logout}
+            className="w-full mt-3 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </motion.button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function StatusIndicator({ isExpanded }: { isExpanded: boolean }) {
   return (
     <div className="px-4 mt-auto">
@@ -190,6 +245,7 @@ export function CyberpunkLayout({ children }: CyberpunkLayoutProps) {
           </ul>
         </nav>
 
+        <UserProfile isExpanded={isExpanded} />
         <StatusIndicator isExpanded={isExpanded} />
       </motion.aside>
 

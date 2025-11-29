@@ -10,10 +10,12 @@ import {
   AlertCircle,
   Loader2,
   Table,
+  Server,
 } from "lucide-react";
 import { useCallback, useState, useRef } from "react";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
+import { useStore } from "@/lib/store";
 
 // Interfaces
 export interface ParsedData {
@@ -31,6 +33,7 @@ interface FileUploadProps {
   acceptedTypes?: string[];
   maxSizeMB?: number;
   className?: string;
+  useBackend?: boolean;
 }
 
 type UploadStatus = "idle" | "dragging" | "uploading" | "parsing" | "success" | "error";
@@ -250,13 +253,16 @@ export function FileUpload({
   acceptedTypes = DEFAULT_ACCEPTED_TYPES,
   maxSizeMB = DEFAULT_MAX_SIZE_MB,
   className,
+  useBackend = true,
 }: FileUploadProps) {
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [fileName, setFileName] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [progress, setProgress] = useState(0);
+  const [uploadedToBackend, setUploadedToBackend] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile } = useStore();
 
   const resetState = () => {
     setStatus("idle");
@@ -264,6 +270,7 @@ export function FileUpload({
     setErrorMessage(null);
     setParsedData(null);
     setProgress(0);
+    setUploadedToBackend(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -298,19 +305,54 @@ export function FileUpload({
         setStatus("parsing");
         setProgress(30);
 
-        let data: ParsedData;
-        if (extension === "csv") {
-          data = await parseCSV(file);
-        } else if (extension === "xlsx" || extension === "xls") {
-          data = await parseExcel(file);
+        // Use backend for CSV files when useBackend is enabled
+        if (useBackend && extension === "csv") {
+          setProgress(50);
+          const response = await uploadFile(file);
+          
+          if (!response) {
+            throw new Error("Failed to upload file to server");
+          }
+          
+          // Create ParsedData from response for preview
+          const data: ParsedData = {
+            headers: ["name", "role", "department", "impactScore", "burnoutRisk"],
+            rows: response.employees.map(emp => ({
+              id: emp.id,
+              name: emp.name,
+              role: emp.role,
+              department: emp.department,
+              email: emp.email,
+              impactScore: emp.impactScore,
+              burnoutRisk: emp.burnoutRisk,
+              location: emp.location,
+            })),
+            fileName: file.name,
+            fileType: "csv",
+            totalRows: response.employees.length,
+          };
+          
+          setProgress(100);
+          setParsedData(data);
+          setUploadedToBackend(true);
+          setStatus("success");
+          onDataParsed?.(data);
         } else {
-          throw new Error("Unsupported file format");
-        }
+          // Local parsing for Excel or when useBackend is disabled
+          let data: ParsedData;
+          if (extension === "csv") {
+            data = await parseCSV(file);
+          } else if (extension === "xlsx" || extension === "xls") {
+            data = await parseExcel(file);
+          } else {
+            throw new Error("Unsupported file format");
+          }
 
-        setProgress(100);
-        setParsedData(data);
-        setStatus("success");
-        onDataParsed?.(data);
+          setProgress(100);
+          setParsedData(data);
+          setStatus("success");
+          onDataParsed?.(data);
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to parse file";
         setErrorMessage(message);
@@ -363,11 +405,11 @@ export function FileUpload({
       case "dragging":
         return "Drop file here";
       case "uploading":
-        return "Uploading...";
+        return "Uploading to server...";
       case "parsing":
-        return "Parsing data...";
+        return useBackend ? "Processing on server..." : "Parsing data...";
       case "success":
-        return "File processed successfully";
+        return uploadedToBackend ? "File uploaded and processed by server" : "File processed successfully";
       case "error":
         return errorMessage || "Error processing file";
       default:
@@ -434,6 +476,12 @@ export function FileUpload({
             <div className="mt-3 flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
               <FileSpreadsheet className="w-4 h-4 text-purple-400" />
               <span className="text-sm text-gray-300">{fileName}</span>
+              {uploadedToBackend && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-teal-500/20 text-teal-400 text-xs">
+                  <Server className="w-3 h-3" />
+                  Server
+                </span>
+              )}
               {isComplete && (
                 <button
                   onClick={handleRemoveFile}

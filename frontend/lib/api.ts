@@ -213,15 +213,23 @@ export class ApiError extends Error {
   }
 }
 
-// Fetch wrapper with error handling
+// Get auth token from localStorage
+function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('luminus_auth_token');
+}
+
+// Fetch wrapper with error handling and auth
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
+  const token = getAuthToken();
   
   try {
     const response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options?.headers,
       },
     });
