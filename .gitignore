@@ -1,3 +1,6 @@
 .vercel
 .env*.local
 package-lock.json
+# Backend envs
+backend/.env
+backend/.env.local
